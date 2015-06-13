@@ -7,11 +7,3 @@ CITATION:
 
   - Jaime Huerta-Cepas, Joaquín Dopazo and Toni Gabaldón. ETE: a python
   Environment for Tree Exploration. BMC Bioinformatics 2010, 11:2 4.
-
-FEEDBACK AND CONTRIBUTIONS FROM: 
-
-Shankar Vembu (fast tree reconciliation method)
-François Serra (EvolTree)
-Salvador Capella (phylomedb API)
-Marina Marcet (phylomedb, treeko)
-Ivan Denisov (phylomedb webplugin)

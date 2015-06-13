@@ -44,6 +44,14 @@ Faces
    :members:
    :no-undoc-members:
 
+.. autoclass:: ete3.RectFace
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: ete3.StackedBarFace
+   :members:
+   :no-undoc-members:
+
 .. autoclass:: ete3.SequenceFace
    :members:
    :no-undoc-members:

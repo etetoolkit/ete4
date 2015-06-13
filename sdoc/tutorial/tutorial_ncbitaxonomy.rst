@@ -4,8 +4,8 @@
 
 .. currentmodule:: ete3
 
-Overview
-================
+Dealing with the NCBI Taxonomy database
+=================================================
 
 ETE's `ncbi_taxonomy` module provides utilities to efficiently query a local
 copy of the NCBI Taxonomy database. The class :class:`NCBITaxonomy` offers
@@ -14,7 +14,7 @@ topologies connecting a given set of species, or to download rank, names and
 lineage track information.
  
 It is also fully integrated with :class:`PhyloTree` instances through the
-:func:`tree.annotate_tree` method.
+:func:`PhyloNode.annotate_ncbi_taxa` method.
 
 Setting up a local copy of the NCBI taxonomy database
 -------------------------------------------------------
@@ -22,7 +22,7 @@ Setting up a local copy of the NCBI taxonomy database
 The first time you attempt to use :class:`NCBITaxa`, ETE will detect that your
 local database is empty and it will attempt to download the latest NCBI taxonomy
 database (~300MB) and will store a parsed version of it in your home directory:
-`~/.etetoolkit/taxa.sqlite`. All future imports of `NCBITaxa` will detect the
+`~/.etetoolkit/taxa.sqlite`. All future imports of _`NCBITaxa` will detect the
 local database and will skip this step.
 
 ::
@@ -43,9 +43,6 @@ overwritten.
    ncbi.update_taxonomy_database()
 
 
-Converting taxid, species names 
-----------------------------------------
-
 Getting taxid information 
 -----------------------------
 
@@ -55,7 +52,6 @@ using the following methods:
  - :func:`NCBITaxa.get_rank`
  - :func:`NCBITaxa.get_lineage`
  - :func:`NCBITaxa.get_taxid_translator`
- - :func:`NCBITaxa.get_taxid_names`
  - :func:`NCBITaxa.get_name_translator`
  - :func:`NCBITaxa.translate_to_names`
 
@@ -118,6 +114,37 @@ And you can combine combine all at once:
    # u'Mammalia', u'Theria', u'Eutheria', u'Boreoeutheria', u'Euarchontoglires',
    # u'Primates', u'Haplorrhini', u'Simiiformes', u'Catarrhini', u'Hominoidea',
    # u'Hominidae', u'Homininae', u'Homo', u'Homo sapiens']
+
+
+Getting descendant taxa
+-----------------------------
+
+Given a taxid or a taxa name from an internal node in the NCBI taxonomy tree,
+their descendants can be retrieved as follows:
+
+::
+
+   from ete3 import NCBITaxa
+   ncbi = NCBITaxa()
+
+   descendants = ncbi.get_descendant_taxa('Homo')
+   print ncbi.translate_to_names(descendants)
+
+   # [u'Homo heidelbergensis', u'Homo sapiens ssp. Denisova', u'Homo sapiens neanderthalensis']
+
+   # you can easily ignore subspecies, so only taxa labeled as "species" will be reported:
+   descendants = ncbi.get_descendant_taxa('Homo', collapse_subspecies=True)
+   print ncbi.translate_to_names(descendants)
+
+   # [u'Homo sapiens', u'Homo heidelbergensis']
+
+   # or even returned as an annotated tree
+   tree = ncbi.get_descendant_taxa('Homo', collapse_subspecies=True, return_tree=True)
+   print tree.get_ascii(attributes=['sci_name', 'taxid'])
+
+   #           /-Homo sapiens, 9606
+   # -Homo, 9605
+   #           \-Homo heidelbergensis, 1425170
 
 
 Getting NCBI species tree topology
@@ -213,7 +240,7 @@ from leaf names. The parsing method can be easily adapted to any formatting:
    #                          \-10090|protB, Mus musculus, 10090
 
 
-Alternatively, you can also use the :func:`NCBITaxa.annotate` function to
+Alternatively, you can also use the :func:`NCBITaxa.annotate_tree` function to
 annotate a custom tree instance.
 
 ::
