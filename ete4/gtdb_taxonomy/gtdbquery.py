@@ -214,6 +214,18 @@ class GTDBTaxa(object):
 
         return id2lineages
 
+    def get_name_lineage(self, taxnames):
+        """Given a valid taxname, return its corresponding lineage track as a
+        hierarchically sorted list of parent taxnames.
+        """
+        name_lineages = []
+        name2taxid = self.get_name_translator(taxnames)
+        for key, value in name2taxid.items():
+            lineage = self.get_lineage(value[0])
+            names = self.get_taxid_translator(lineage)
+            name_lineages.append({key:[names[taxid] for taxid in lineage]})
+
+        return name_lineages
 
     def get_lineage(self, taxid):
         """Given a valid taxid number, return its corresponding lineage track as a
@@ -388,7 +400,7 @@ class GTDBTaxa(object):
             species rank will be collapsed into the species upper
             node.
         """
-        from ete3 import PhyloTree
+        from ete4 import PhyloTree
         #taxids, merged_conversion = self._translate_merged(taxids)
         tax2id = self.get_name_translator(taxnames) #{'f__Korarchaeaceae': [2174], 'o__Peptococcales': [205487], 'p__Huberarchaeota': [610]}
         taxids = [i[0] for i in tax2id.values()]
@@ -449,7 +461,7 @@ class GTDBTaxa(object):
                         node = elem2node.setdefault(elem, PhyloTree())
                         node.name = str(tax2name[elem])
                         node.taxid = str(tax2name[elem])
-                        node.add_feature("rank", str(id2rank.get(int(elem), "no rank")))
+                        node.add_prop("rank", str(id2rank.get(int(elem), "no rank")))
                     else:
                         node = elem2node[elem]
                     track.append(node)
@@ -460,7 +472,7 @@ class GTDBTaxa(object):
                 for elem in track:
                     if parent and elem not in parent.children:
                         parent.add_child(elem)
-                    if rank_limit and elem.rank == rank_limit:
+                    if rank_limit and elem.props.get('rank') == rank_limit:
                         break
                     parent = elem
             root = elem2node[1]
@@ -479,7 +491,7 @@ class GTDBTaxa(object):
         if collapse_subspecies:
             to_detach = []
             for node in tree.traverse():
-                if node.rank == "species":
+                if node.props.get('rank') == "species":
                     to_detach.extend(node.children)
             for n in to_detach:
                 n.detach()
@@ -548,29 +560,31 @@ class GTDBTaxa(object):
             except (ValueError, AttributeError):
                 node_taxid = None
 
-            n.add_features(taxid = node_taxid)
+            n.add_prop('taxid', node_taxid)
             if node_taxid:
+                tmp_taxid = self.get_name_translator([node_taxid])[node_taxid][0] # translate to temperatoru
                 if node_taxid in merged_conversion:
                     node_taxid = merged_conversion[node_taxid]
-                n.add_features(sci_name = tax2name.get(node_taxid, getattr(n, taxid_attr, '')),
+                n.add_props(sci_name = tax2name.get(node_taxid, getattr(n, taxid_attr, '')),
                                common_name = tax2common_name.get(node_taxid, ''),
-                               lineage = tax2track.get(name2tax.get(node_taxid, ''), []),
-                               rank = tax2rank.get(name2tax.get(node_taxid, ''), 'Unknown'),
-                               named_lineage = [tax2name.get(tax, str(tax)) for tax in tax2track.get(name2tax.get(node_taxid, ''), [])])
+                               lineage = tax2track.get(tmp_taxid, []),
+                               rank = tax2rank.get(tmp_taxid, 'Unknown'),
+                               named_lineage = [tax2name.get(tax, str(tax)) for tax in tax2track.get(tmp_taxid, [])])
             elif n.is_leaf():
-                n.add_features(sci_name = getattr(n, taxid_attr, 'NA'),
+                n.add_props(sci_name = getattr(n, taxid_attr, 'NA'),
                                common_name = '',
                                lineage = [],
                                rank = 'Unknown',
                                named_lineage = [])
             else:
-                lineage = self._common_lineage([lf.lineage for lf in n2leaves[n]])
-                ancestor = lineage[-1]
-                n.add_features(sci_name = tax2name.get(ancestor, str(ancestor)),
-                               common_name = tax2common_name.get(ancestor, ''),
-                               taxid = tax2name.get(ancestor,''),
+                lineage = self._common_lineage([lf.props.get('lineage') for lf in n2leaves[n]])
+                ancestor = self.get_taxid_translator([lineage[-1]])[lineage[-1]]
+                #print([tax2name.get(tax, str(tax)) for tax in lineage])
+                n.add_props(sci_name = tax2name.get(ancestor, str(ancestor)),
+                               common_name = tax2common_name.get(lineage[-1], ''),
+                               taxid = ancestor,
                                lineage = lineage,
-                               rank = tax2rank.get(ancestor, 'Unknown'),
+                               rank = tax2rank.get(lineage[-1], 'Unknown'),
                                named_lineage = [tax2name.get(tax, str(tax)) for tax in lineage])
 
         return tax2name, tax2track, tax2rank
@@ -675,7 +689,7 @@ class GTDBTaxa(object):
 
 
 def load_gtdb_tree_from_dump(tar):
-    from ete3 import Tree
+    from ete4 import Tree
     # Download: gtdbdump/gtdbr202dump.tar.z
     parent2child = {}
     name2node = {}
@@ -719,10 +733,11 @@ def load_gtdb_tree_from_dump(tar):
         parentname = fields[1].strip()
         n = Tree()
         n.name = nodename
-        n.taxname = node2taxname[nodename]
+        #n.taxname = node2taxname[nodename]
+        n.add_prop('taxname', node2taxname[nodename])
         if nodename in node2common:
-            n.common_name = node2common[nodename]
-        n.rank = fields[2].strip()
+            n.add_prop('common_name', node2taxname[nodename])
+        n.add_prop('rank', fields[2].strip())
         parent2child[nodename] = parentname
         name2node[nodename] = n
     print(len(name2node), "nodes loaded.")
@@ -749,9 +764,9 @@ def generate_table(t):
             track.append(temp_node.name)
             temp_node = temp_node.up
         if n.up:
-            print('\t'.join([n.name, n.up.name, n.taxname, getattr(n, "common_name", ""), n.rank, ','.join(track)]), file=OUT)
+            print('\t'.join([n.name, n.up.name, n.props.get('taxname'), n.props.get("common_name", ''), n.props.get("rank"), ','.join(track)]), file=OUT)
         else:
-            print('\t'.join([n.name, "", n.taxname, getattr(n, "common_name", ""), n.rank, ','.join(track)]), file=OUT)
+            print('\t'.join([n.name, "", n.props.get('taxname'), n.props.get("common_name", ''), n.props.get("rank"), ','.join(track)]), file=OUT)
     OUT.close()
 
     
@@ -846,7 +861,17 @@ def upload_data(dbfile):
 
 if __name__ == "__main__":
     gtdb = GTDBTaxa()
-    gtdb.update_taxonomy_database(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'gtdbdump', 'gtdbr202dump.tar.gz'))
-    print(gtdb.get_rank(['p__Bacteroidota', 'p__Firmicutes_F']))
-    descendants = gtdb.get_descendant_taxa('p__Firmicutes_B', collapse_subspecies=True, return_tree=True)
+    gtdb.update_taxonomy_database(DEFAULT_GTDBTAXADUMP)
+    
+    descendants = gtdb.get_descendant_taxa('c__Thorarchaeia', collapse_subspecies=True, return_tree=True)
+    print(descendants.write(properties=None))
     print(descendants.get_ascii(attributes=['sci_name', 'taxid','rank']))
+    tree = gtdb.get_topology(["p__Huberarchaeota", "o__Peptococcales", "f__Korarchaeaceae", "s__Korarchaeum"], intermediate_nodes=True, collapse_subspecies=True, annotate=True)
+    print(tree.get_ascii(attributes=["taxid",  "sci_name", "rank"]))
+    
+    from ete4 import PhyloTree
+    tree = PhyloTree('((c__Thorarchaeia, c__Lokiarchaeia_A), s__Caballeronia udeis);', sp_naming_function=lambda name: name)
+    tax2name, tax2track, tax2rank = gtdb.annotate_tree(tree, taxid_attr="name")
+    print(tree.get_ascii(attributes=["taxid","name", "sci_name", "rank"]))
+
+    print(gtdb.get_name_lineage(['RS_GCF_006228565.1','GB_GCA_001515945.1']))
