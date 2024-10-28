@@ -141,13 +141,10 @@ def callback(tree_id):
 
 @get('/trees/<tree_id>/layouts')
 def callback(tree_id):
-    """Get a list of available layouts for the tree."""
+    """Get the layout names and default options, available for the tree."""
     name, _ = get_tid(tree_id)  # "name" or "tid" is what identifies the tree
-
-    layouts = [layout.name for layout in g_layouts.get(name, [])]
-
-    response.content_type = 'application/json'
-    return json.dumps(layouts)
+    layouts = g_layouts.get(name, [])  # layouts available for the tree
+    return {layout.name: {'active': layout.active} for layout in layouts}
 
 @get('/trees/<tree_id>/style')
 def callback(tree_id):

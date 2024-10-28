@@ -350,9 +350,9 @@ async function populate_layouts() {
     // Get list of existing layouts for the current tree and populate the menu.
     const layouts = await api(`/trees/${get_tid()}/layouts`);
 
-    for (const layout of layouts) {
-        view.layouts[layout] = {active: true};
-        menus.layouts.addBinding(view.layouts[layout], "active", {label: layout})
+    for (const name in layouts) {
+        view.layouts[name] = {active: layouts[name]["active"]};
+        menus.layouts.addBinding(view.layouts[name], "active", {label: name})
             .on("change", async () => {
                 await set_tree_style();
                 update();

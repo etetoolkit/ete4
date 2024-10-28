@@ -24,7 +24,8 @@ from .faces import Face, PropFace
 class Layout:
     """Contains all the info about how to represent a tree."""
 
-    def __init__(self, name, draw_tree=None, draw_node=None, cache_size=None):
+    def __init__(self, name, draw_tree=None, draw_node=None, cache_size=None,
+                 active=True):
         self.cache_size = cache_size  # used to cache functions in the setters
 
         # Name. This is mainly to activate/deactivate the layout in the gui.
@@ -36,6 +37,9 @@ class Layout:
 
         # Node representation (style and decorations).
         self.draw_node = draw_node
+
+        # Set if the layout should be initially active in the gui.
+        self.active = active  # TODO: Find a better place for this
 
     @property
     def draw_tree(self):
