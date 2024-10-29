@@ -412,7 +412,8 @@ function create_item(item, tl, zoom) {
                 create_asec([x, y, dx, dy], tl, zx);
 
             const code = (seq.charCodeAt(i) - 65) * 9;  // 'A' -> 65, and 26 letters vs 256 hs
-            r.style.fill = `hsl(${code}, 100%, 50%)`;
+            const fill = seq[i] === "-" ? "white" : `hsl(${code}, 100%, 50%)`;
+            r.style.fill = fill;
             // TODO: maybe select colors following some "standards" like:
             // https://acces.ens-lyon.fr/biotic/rastop/help/colour.htm
             // https://www.dnastar.com/manuals/MegAlignPro/17.2/en/topic/change-the-analysis-view-color-scheme
