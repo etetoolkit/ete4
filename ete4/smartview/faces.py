@@ -96,7 +96,8 @@ class PropFace(EvalTextFace):
     """A text showing the given property, and optionally a special format."""
 
     def __init__(self, prop, fmt='%s', fs_min=2, fs_max=16, style=None):
-        expression = f'("{fmt}" % p["{prop}"]) if "{prop}" in p else ""'
+        pexp = prop if prop in ['name', 'dist', 'support'] else f'p["{prop}"]'
+        expression = f'"{fmt}" % {pexp} if "{prop}" in p else ""'
         super().__init__(expression, fs_min, fs_max, style)
 
 
@@ -183,7 +184,7 @@ def eval_as_str(code, node):
         'node': node, 'name': node.name, 'is_leaf': node.is_leaf,
         'length': node.dist, 'dist': node.dist, 'd': node.dist,
         'size': node.size, 'dx': node.size[0], 'dy': node.size[1],
-        'support': node.props.get('support', ''),
+        'support': node.support,
         'properties': node.props, 'props': node.props, 'p': node.props,
         'get': dict.get, 'split': str.split,
         'children': node.children, 'ch': node.children,
