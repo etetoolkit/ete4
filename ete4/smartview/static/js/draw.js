@@ -407,6 +407,9 @@ function create_item(item, tl, zoom) {
 
         const g = create_svg_element("g");
         for (let i = 0, x = x0; i < seq.length; i++, x+=dx) {
+            if (tl.x + zx * x > div_aligned.offsetWidth)
+                break;  // do not create more if they don't fit
+
             const r = view.shape === "rectangular" ?
                 create_rect([x, y, dx, dy], tl, zx, zy) :
                 create_asec([x, y, dx, dy], tl, zx);
@@ -421,9 +424,10 @@ function create_item(item, tl, zoom) {
 
             g.appendChild(r);
 
-            if (draw_text)
-                g.appendChild(create_text([x, y, dx, dy], [0.5, 0.5],
-                                          seq[i], fs_max, tl, zx, zy));
+            if (draw_text)  // draw a letter too
+                if (dx * zx > 5)  // but only if there's space
+                    g.appendChild(create_text([x, y, dx, dy], [0.5, 0.5],
+                                              seq[i], fs_max, tl, zx, zy));
         }
 
         return g;
