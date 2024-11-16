@@ -186,12 +186,6 @@
     font-size: 0.8em;
 }
 
-.negative_xaxis {
-    stroke: #A50A;
-    stroke-width: 4px;
-    stroke-linecap: round;
-}
-
 hr {
     border: 0;
     height: 1px;

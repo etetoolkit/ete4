@@ -223,11 +223,19 @@ function translate(item, shift) {
 // Add a line to the svg in div_tree marking the -x axis.
 // Useful when we represent circular trees with angles < -180 or > 180.
 function draw_negative_xaxis() {
-    const x1 = -view.rmin;
-    const x2 = x1 - view.tree_size.width;
-    const item = ["line", [x1, 0], [x2, 0], "negative_xaxis", []];
+    // x position where the line should end (a bit left of the tree size)
+    const x = -view.rmin - view.tree_size.width * 1.2;
+
+    const style = {
+        stroke: "#A008",
+        strokeWidth: "10px",
+        strokeLinecap: "round",
+    };
+    const line1 = ["line", [0, 0], [x, 0], style];  // round fuzzy line
+    const line2 = ["line", [0, 0], [x, 0], ""];  // thin black line
+
     const replace = false;
-    draw(div_tree, [item], view.tl, view.zoom, replace);
+    draw(div_tree, [line1, line2], view.tl, view.zoom, replace);
 }
 
 
