@@ -183,7 +183,10 @@ function add_folder_viewport(menu) {
     const folder_aligned = folder(folder_viewport, "aligned bar");
     folder_aligned.addBinding(view, "align_bar",
         {min: 0, max: 100, label: "position"})
-        .on("change", (ev) => div_aligned.style.width = `${100 - ev.value}%`);
+        .on("change", (ev) => {
+            div_aligned.style.width = `${100 - ev.value}%`;
+            view.pixi_app.resizeTo = div_aligned;  // otherwise it forgets...
+        });
 }
 
 

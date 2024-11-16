@@ -2,6 +2,7 @@
 
 import { init_menus } from "./menu.js";
 import { init_events } from "./events.js";
+import { init_pixi } from "./pixi.js";
 import { update } from "./draw.js";
 import { download_newick, download_image, download_svg } from "./download.js";
 import { search, remove_searches } from "./search.js";
@@ -121,6 +122,9 @@ const view = {
         zoom: {x: 1, y: 1},
     },
 
+    pixi_app: null,  // pixi app with the canvas
+    pixi_sheet: null,  // spritesheet with the graphics
+
     smart_zoom: true,
 
     share_view: () => share_view(),
@@ -165,6 +169,8 @@ async function main() {
 
         draw_minimap();
         show_minimap(false);  // set to true to have a minimap at startup
+
+        await init_pixi();
 
         update();
 

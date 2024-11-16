@@ -85,6 +85,10 @@
 }
 
 #div_aligned_grabber {
+    position: absolute;
+    left: 0;
+    height: 100%;
+    z-index: 2;
     background-color: lightgray;
     width: 15px;
     cursor: ew-resize;

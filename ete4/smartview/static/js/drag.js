@@ -49,8 +49,12 @@ function drag_move(point) {
     if (dragging.element === div_aligned) {
         view.align_bar += 100 * movement.x / div_tree.offsetWidth;
         view.align_bar = Math.min(Math.max(view.align_bar, 1), 99);  // clip
-        menus.pane.refresh();  // update the info box
         div_aligned.style.width = `${100 - view.align_bar}%`;
+
+        dragging.moved = true;  // so it updates after drag stops
+        view.pixi_app.resizeTo = div_aligned;  // otherwise it forgets...
+
+        menus.pane.refresh();  // update the info box
     }
     else if (dragging.element) {
         dragging.moved = true;

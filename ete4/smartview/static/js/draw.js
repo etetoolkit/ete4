@@ -2,6 +2,7 @@
 
 import { view, menus, get_tid, on_box_click, on_box_wheel, tree_command, reset_view }
     from "./gui.js";
+import { draw_seq, clear_pixi } from "./pixi.js";
 import { update_minimap_visible_rect } from "./minimap.js";
 import { colorize_searches, get_search_class } from "./search.js";
 import { on_box_contextmenu } from "./contextmenu.js";
@@ -44,6 +45,9 @@ async function draw_tree() {
 
         // Separate them per panel.
         const [items_per_panel, xmax] = get_items_per_panel(commands);
+
+        // Clear any graphics from pixi that there may be first.
+        clear_pixi();
 
         // The main function: draw all received items on panel 0 in div_tree.
         draw(div_tree, items_per_panel[0], view.tl, view.zoom);
@@ -408,6 +412,20 @@ function create_item(item, tl, zoom) {
     }
     else if (item[0] === "seq") {
         const [ , box, seq, draw_text, fs_max, style] = item;
+
+        // With pixi.
+        const drawing_method = "pixi";  // TODO: Change this (this is just a test)
+        if (drawing_method === "pixi") {
+            let [x, y, dx, dy] = box;
+            x = zx * (x - tl.x);
+            y = zy * (y - tl.y);
+            dx = zx * dx;
+            dy = zy * dy;
+            draw_seq(seq, [x, y, dx, dy]);
+            return null;
+        }
+
+        // With svg.
         const [x0, y0, dx0, dy0] = box;
         const dx = dx0 / seq.length;
 

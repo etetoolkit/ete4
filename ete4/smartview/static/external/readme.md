@@ -16,3 +16,10 @@ Also, as explained in https://github.com/sweetalert2/sweetalert2 , with:
     npm install --save sweetalert2
 
 and pick it from `./node_modules/sweetalert2/dist/sweetalert2.min.js`.
+
+
+## pixi
+
+* https://pixijs.com/
+
+We are currently using 8.5.2.
