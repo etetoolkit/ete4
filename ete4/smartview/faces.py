@@ -300,7 +300,7 @@ class SeqFace:
         self.draw_text = draw_text
         self.hmax = hmax  # maximum height in pixels
         self.fs_max = fs_max
-        self.style = style
+        self.style = style or ''
 
     def draw(self, nodes, size, collapsed, zoom, ax_ay, r):
         dx, dy = size
