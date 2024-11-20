@@ -413,50 +413,8 @@ function create_item(item, tl, zoom) {
     else if (item[0] === "seq") {
         const [ , box, seq, draw_text, fs_max, style] = item;
 
-        // With pixi.
-        const drawing_method = "pixi";  // TODO: Change this (this is just a test)
-        if (drawing_method === "pixi") {
-            let [x, y, dx, dy] = box;
-            x = zx * (x - tl.x);
-            y = zy * (y - tl.y);
-            dx = zx * dx;
-            dy = zy * dy;
-            draw_seq(seq, [x, y, dx, dy]);
-            return null;
-        }
-
-        // With svg.
-        const [x0, y0, dx0, dy0] = box;
-        const dx = dx0 / seq.length;
-
-        const [y, dy] = pad(y0, dy0, view.array.padding);
-
-        const g = create_svg_element("g");
-        for (let i = 0, x = x0; i < seq.length; i++, x+=dx) {
-            if (tl.x + zx * x > div_aligned.offsetWidth)
-                break;  // do not create more if they don't fit
-
-            const r = view.shape === "rectangular" ?
-                create_rect([x, y, dx, dy], tl, zx, zy) :
-                create_asec([x, y, dx, dy], tl, zx);
-
-            const code = (seq.charCodeAt(i) - 65) * 9;  // 'A' -> 65, and 26 letters vs 256 hs
-            const fill = seq[i] === "-" ? "white" : `hsl(${code}, 100%, 50%)`;
-            r.style.fill = fill;
-            // TODO: maybe select colors following some "standards" like:
-            // https://acces.ens-lyon.fr/biotic/rastop/help/colour.htm
-            // https://www.dnastar.com/manuals/MegAlignPro/17.2/en/topic/change-the-analysis-view-color-scheme
-            // http://yulab-smu.top/ggmsa/articles/guides/Color_schemes_And_Font_Families.html
-
-            g.appendChild(r);
-
-            if (draw_text)  // draw a letter too
-                if (dx * zx > 5)  // but only if there's space
-                    g.appendChild(create_text([x, y, dx, dy], [0.5, 0.5],
-                                              seq[i], fs_max, tl, zx, zy));
-        }
-
-        return g;
+        return create_seq(box, seq, draw_text, fs_max, tl, zx, zy,
+                          add_ns_prefix(style));
     }
     else {
         console.log(`Unrecognized item: ${item}`);
@@ -789,6 +747,89 @@ function create_text(box, anchor, text, fs_max, tl, zx, zy, style="") {
 
     return t;
 }
+
+
+function create_seq(box, seq, draw_text, fs_max, tl, zx, zy, style) {
+    // TODO: Change this (this is just a test).
+    //draw_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style);
+    //return null;
+
+    return create_seq_svg(box, seq, draw_text, fs_max, tl, zx, zy, style);
+}
+
+// With pixi.
+function draw_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style) {
+    let [x, y, dx, dy] = box;
+    x = zx * (x - tl.x);
+    y = zy * (y - tl.y);
+    dx = zx * dx;
+    dy = zy * dy;
+    draw_seq(seq, [x, y, dx, dy]);
+}
+
+// With svg.
+function create_seq_svg(box, seq, draw_text, fs_max, tl, zx, zy, style) {
+    const [x0, y0, dx0, dy0] = box;
+    const dx = dx0 / seq.length;
+
+    const [y, dy] = pad(y0, dy0, view.array.padding);
+
+    const g = create_svg_element("g");
+    for (let i = 0, x = x0; i < seq.length; i++, x+=dx) {
+        if (tl.x + zx * x > div_aligned.offsetWidth)
+            break;  // do not create more if they don't fit
+
+        const r = view.shape === "rectangular" ?
+            create_rect([x, y, dx, dy], tl, zx, zy) :
+            create_asec([x, y, dx, dy], tl, zx);
+
+        r.style.fill = colors[seq[i]];
+
+        g.appendChild(r);
+
+        if (draw_text)  // draw a letter too
+            if (dx * zx > 5)  // but only if there's space
+                g.appendChild(create_text([x, y, dx, dy], [0.5, 0.5],
+                                            seq[i], fs_max, tl, zx, zy));
+    }
+
+    return g;
+}
+
+// Colors taken so they are the same as the ones used in the pixi images.
+const colors = {
+    "-": "white",
+    A: "#c8c8c8",
+    B: "#ff69b4",
+    C: "#e6e600",
+    D: "#e60a0a",
+    E: "#e60a0a",
+    F: "#3232aa",
+    G: "#ebebeb",
+    H: "#8282d2",
+    I: "#0f820f",
+    K: "#145aff",
+    L: "#0f820f",
+    M: "#e6e600",
+    N: "#00dcdc",
+    P: "#dc9682",
+    Q: "#00dcdc",
+    R: "#145aff",
+    S: "#fa9600",
+    T: "#fa9600",
+    V: "#0f820f",
+    W: "#b45ab4",
+    X: "#bea06e",
+    Y: "#3232aa",
+    Z: "#ff69b4",
+}
+// Alternatively:
+//   const code = (seq.charCodeAt(i) - 65) * 9;  // 'A' -> 65, and 26 letters vs 256 hs
+//   const fill = seq[i] === "-" ? "white" : `hsl(${code}, 100%, 50%)`;
+// TODO: see if we want instead colors following some "standards" like:
+// https://acces.ens-lyon.fr/biotic/rastop/help/colour.htm
+// https://www.dnastar.com/manuals/MegAlignPro/17.2/en/topic/change-the-analysis-view-color-scheme
+// http://yulab-smu.top/ggmsa/articles/guides/Color_schemes_And_Font_Families.html
 
 
 // "From tree coordinates to screen coordinates (for rectangular mode)".
