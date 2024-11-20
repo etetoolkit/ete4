@@ -185,7 +185,7 @@ function add_folder_viewport(menu) {
         {min: 0, max: 100, label: "position"})
         .on("change", (ev) => {
             div_aligned.style.width = `${100 - ev.value}%`;
-            view.pixi_app.resizeTo = div_aligned;  // otherwise it forgets...
+            view.pixi_app_aligned.resizeTo = div_aligned;  // otherwise it forgets...
         });
 }
 

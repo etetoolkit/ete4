@@ -2,7 +2,7 @@
 
 import { view, menus, get_tid, on_box_click, on_box_wheel, tree_command, reset_view }
     from "./gui.js";
-import { draw_seq, clear_pixi } from "./pixi.js";
+import { create_seq_pixi_local, clear_pixi } from "./pixi.js";
 import { update_minimap_visible_rect } from "./minimap.js";
 import { colorize_searches, get_search_class } from "./search.js";
 import { on_box_contextmenu } from "./contextmenu.js";
@@ -243,24 +243,39 @@ function draw_negative_xaxis() {
 }
 
 
-// Append a svg to the given element, with all the items in the list drawn.
-// The first child of element will be used or replaced as a svg.
+// Add graphics to the given element, with all the items in the list drawn.
+// The svg inside the element will be either used or replaced.
 function draw(element, items, tl, zoom, replace=true) {
+    // The pixi app that we need to draw on element.
+    const app = element === div_tree    ? view.pixi_app_tree :
+                element === div_aligned ? view.pixi_app_aligned : null;
+
+    // The global svg element where all the created svgs will be.
     const g = create_svg_element("g");
 
-    items.forEach(item => {
-        const svg = create_item(item, tl, zoom);
-        if (svg !== null)
-            g.appendChild(svg);
+    // Add graphics from items.
+    items.forEach(item_as_list => {
+        const item = create_item(item_as_list, tl, zoom);
+        if (item === null) {  // we decided not to draw the element
+            ;  // do nothing
+        }
+        else if (item.worldTransform !== undefined) {  // pixi
+            app.stage.addChild(item);  // add item to pixi stage
+        }
+        else {  // svg
+            g.appendChild(item);  // add item to global svg element
+        }
     });
 
-    put_nodes_in_background(g);
+    // Extra operations that we need for the svgs.
+
+    put_nodes_in_background(g);  // so they don't cover other graphics
 
     if (replace)
-        replace_svg(element);
+        replace_svg(element);  // so we swap the main svg (faster to draw)
 
     const svg = element.getElementsByTagName("svg")[0];
-    svg.appendChild(g);
+    svg.appendChild(g);  // add our global g element to the svg
 }
 
 
@@ -298,7 +313,7 @@ function replace_svg(element) {
 }
 
 
-// Return the graphical (svg) element corresponding to a graphical item.
+// Return the graphical (svg or pixi) element corresponding to a graphical item.
 function create_item(item, tl, zoom) {
     // item looks like ["line", ...] for a line, etc.
 
@@ -751,20 +766,19 @@ function create_text(box, anchor, text, fs_max, tl, zx, zy, style="") {
 
 function create_seq(box, seq, draw_text, fs_max, tl, zx, zy, style) {
     // TODO: Change this (this is just a test).
-    //draw_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style);
-    //return null;
+    return create_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style);
 
-    return create_seq_svg(box, seq, draw_text, fs_max, tl, zx, zy, style);
+    //return create_seq_svg(box, seq, draw_text, fs_max, tl, zx, zy, style);
 }
 
 // With pixi.
-function draw_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style) {
+function create_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style) {
     let [x, y, dx, dy] = box;
     x = zx * (x - tl.x);
     y = zy * (y - tl.y);
     dx = zx * dx;
     dy = zy * dy;
-    draw_seq(seq, [x, y, dx, dy]);
+    return create_seq_pixi_local(seq, [x, y, dx, dy]);
 }
 
 // With svg.

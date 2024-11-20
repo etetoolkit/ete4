@@ -122,7 +122,8 @@ const view = {
         zoom: {x: 1, y: 1},
     },
 
-    pixi_app: null,  // pixi app with the canvas
+    pixi_app_tree: null,  // pixi app with the canvas on div_tree
+    pixi_app_aligned: null,  // pixi app with the canvas on div_aligned
     pixi_sheet: null,  // spritesheet with the graphics
 
     smart_zoom: true,

@@ -52,7 +52,7 @@ function drag_move(point) {
         div_aligned.style.width = `${100 - view.align_bar}%`;
 
         dragging.moved = true;  // so it updates after drag stops
-        view.pixi_app.resizeTo = div_aligned;  // otherwise it forgets...
+        view.pixi_app_aligned.resizeTo = div_aligned;  // otherwise it forgets
 
         menus.pane.refresh();  // update the info box
     }
