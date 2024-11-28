@@ -53,8 +53,12 @@ function create_seq_pixi_local(seq, box) {
     const [x0, y0, dx0, dy0] = box;
     const dx = dx0 / seq.length;
 
-    for (let i = 0, x = x0; i < seq.length; i++, x+=dx)
+    for (let i = 0, x = x0; i < seq.length; i++, x+=dx) {
+        if (x > div_aligned.offsetWidth)
+            break;  // do not create more if they don't fit
+
         container.addChild(create_char(seq[i], [x, y0, dx, dy0]));
+    }
 
     return container;
 }
