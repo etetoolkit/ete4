@@ -426,10 +426,10 @@ function create_item(item, tl, zoom) {
         return g;
     }
     else if (item[0] === "seq") {
-        const [ , box, seq, draw_text, fs_max, style] = item;
+        const [ , box, seq, seqtype, draw_text, fs_max, style, render] = item;
 
-        return create_seq(box, seq, draw_text, fs_max, tl, zx, zy,
-                          add_ns_prefix(style));
+        return create_seq(box, seq, seqtype, draw_text, fs_max, tl, zx, zy,
+                          add_ns_prefix(style), render);
     }
     else {
         console.log(`Unrecognized item: ${item}`);
@@ -764,15 +764,25 @@ function create_text(box, anchor, text, fs_max, tl, zx, zy, style="") {
 }
 
 
-function create_seq(box, seq, draw_text, fs_max, tl, zx, zy, style) {
-    // TODO: Change this (this is just a test).
-    return create_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style);
+function create_seq(box, seq, seqtype, draw_text, fs_max,
+                    tl, zx, zy, style, render) {
+    if (!["aa", "nt"].includes(seqtype))
+        throw new Error(`unknown sequence type ${seqtype}`);
 
-    //return create_seq_svg(box, seq, draw_text, fs_max, tl, zx, zy, style);
+    if (view.render === "force raster" ||
+        view.render === "auto" && (render === "raster" || render === "auto"))
+        return create_seq_pixi(box, seq, seqtype, draw_text, fs_max,
+                               tl, zx, zy, style);
+    else if (view.render === "force svg" || render === "svg")
+        return create_seq_svg(box, seq, seqtype, draw_text, fs_max,
+                              tl, zx, zy, style);
+    else
+        throw new Error(`unknown render type ${render}`);
 }
 
 // With pixi.
-function create_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style) {
+function create_seq_pixi(box, seq, seqtype, draw_text, fs_max,
+                         tl, zx, zy, style) {
     let [x, y, dx, dy] = box;
     x = zx * (x - tl.x);
     y = zy * (y - tl.y);
@@ -782,7 +792,10 @@ function create_seq_pixi(box, seq, draw_text, fs_max, tl, zx, zy, style) {
 }
 
 // With svg.
-function create_seq_svg(box, seq, draw_text, fs_max, tl, zx, zy, style) {
+function create_seq_svg(box, seq, seqtype, draw_text, fs_max,
+                        tl, zx, zy, style) {
+    const colors = seqtype === "aa" ? aa_colors : nt_colors;
+
     const [x0, y0, dx0, dy0] = box;
     const dx = dx0 / seq.length;
 
@@ -811,7 +824,7 @@ function create_seq_svg(box, seq, draw_text, fs_max, tl, zx, zy, style) {
 }
 
 // Colors taken so they are the same as the ones used in the pixi images.
-const colors = {
+const aa_colors = {  // amino acids
     "-": "white",
     A: "#c8c8c8",
     B: "#ff69b4",
@@ -837,6 +850,17 @@ const colors = {
     Y: "#3232aa",
     Z: "#ff69b4",
 }
+
+const nt_colors = {  // nucleotides
+    "-": "white",
+    A: "#a0a0ff",
+    C: "#ff8c4b",
+    G: "#ff7070",
+    T: "#a0ffa0",
+    U: "#ff8080",
+    I: "#80ffff",
+}
+
 // Alternatively:
 //   const code = (seq.charCodeAt(i) - 65) * 9;  // 'A' -> 65, and 26 letters vs 256 hs
 //   const fill = seq[i] === "-" ? "white" : `hsl(${code}, 100%, 50%)`;

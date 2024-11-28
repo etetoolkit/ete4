@@ -72,8 +72,9 @@ def draw_text(box, anchor, text, fs_max=None, style=''):
 def draw_array(box, a):
     return ['array', box, a]
 
-def draw_seq(box, seq, draw_text=True, fs_max=None, style=''):
-    return ['seq', box, seq, draw_text, fs_max, style]
+def draw_seq(box, seq, seqtype='aa', draw_text=True, fs_max=None, style='',
+             render='auto'):
+    return ['seq', box, seq, seqtype, draw_text, fs_max, style, render]
 
 
 # Other (non-drawing) commands.

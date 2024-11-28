@@ -289,9 +289,13 @@ function add_folder_style(menu) {
                 () => style("text").fontSize = `${view.font_sizes.fixed}px`);
     }
 
-    const folder_array = folder(folder_style, "array");
+    const folder_seq = folder(folder_style, "sequence");
 
-    folder_array.addBinding(view.array, "padding", {min: 0, max: 1, step: 0.01})
+    folder_seq.addBinding(view, "render",
+                          {options: to_opts(["auto", "force raster", "force svg"])})
+        .on("change", update);
+
+    folder_seq.addBinding(view.array, "padding", {min: 0, max: 1, step: 0.01})
         .on("change", update);
 }
 

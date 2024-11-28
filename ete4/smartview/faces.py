@@ -293,14 +293,16 @@ class RectFace(BoxedFace):
 class SeqFace:
     """A sequence of nucleotides or amino acids."""
 
-    def __init__(self, seq, poswidth=15, draw_text=True,
-                 hmax=None, fs_max=15, style=None):
+    def __init__(self, seq, seqtype='aa', poswidth=15, draw_text=True,
+                 hmax=None, fs_max=15, style=None, render='auto'):
         self.seq = ''.join(x for x in seq)  # in case it was a list
+        self.seqtype = seqtype
         self.poswidth = poswidth  # width in pixels of each nucleotide/aa
         self.draw_text = draw_text
         self.hmax = hmax  # maximum height in pixels
         self.fs_max = fs_max
         self.style = style or ''
+        self.render = render
 
     def draw(self, nodes, size, collapsed, zoom, ax_ay, r):
         dx, dy = size
@@ -314,7 +316,7 @@ class SeqFace:
 
         size = Size(dx, dy)
         box = make_box((0, 0), size)
-        graphics = [gr.draw_seq(box, self.seq, self.draw_text,
-                                self.fs_max, self.style)]
+        graphics = [gr.draw_seq(box, self.seq, self.seqtype, self.draw_text,
+                                self.fs_max, self.style, self.render)]
 
         return graphics, size

@@ -126,6 +126,8 @@ const view = {
     pixi_app_aligned: null,  // pixi app with the canvas on div_aligned
     pixi_sheet: null,  // spritesheet with the graphics
 
+    render: "auto",  // "auto", "raster", or "svg" - for drawing sequences
+
     smart_zoom: true,
 
     share_view: () => share_view(),
