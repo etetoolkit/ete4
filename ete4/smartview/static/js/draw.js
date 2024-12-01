@@ -44,16 +44,17 @@ async function draw_tree() {
         const commands = await api(`/trees/${get_tid()}/draw?${qs}`);
 
         // Separate them per panel.
-        const [items_per_panel, xmax] = get_items_per_panel(commands);
+        const [items, xmax] = get_items_per_panel(commands);
+        const [items_tree, items_aligned] = [items[0], items[1]];
 
         // Clear any graphics from pixi that there may be first.
         clear_pixi();
 
-        // The main function: draw all received items on panel 0 in div_tree.
-        draw(div_tree, items_per_panel[0], view.tl, view.zoom);
+        // The main function: draw all received items for tree in div_tree.
+        draw(div_tree, items_tree, view.tl, view.zoom);
 
         // Add aligned panel items.
-        draw_aligned(items_per_panel[1], xmax);  // items in panel 1 (aligned)
+        draw_aligned(items_aligned, xmax);
 
         // Update variable that shows the number of visible nodes in the menu.
         view.nnodes_visible = div_tree.getElementsByClassName("nodebox").length;
