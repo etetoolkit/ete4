@@ -797,16 +797,18 @@ function create_seq_svg(box, seq, seqtype, draw_text, fs_max,
                         tl, zx, zy, style) {
     const colors = seqtype === "aa" ? aa_colors : nt_colors;
 
+    // TODO: Merge most of this code with the one in pixi.js
     const [x0, y0, dx0, dy0] = box;
     const dx = dx0 / seq.length;
+
+    const [xmin, xmax] = [0, div_aligned.offsetWidth];
+    const imin = Math.max(0,          Math.floor((xmin - x0) / dx));
+    const imax = Math.min(seq.length, Math.ceil( (xmax - x0) / dx));
 
     const [y, dy] = pad(y0, dy0, view.array.padding);
 
     const g = create_svg_element("g");
-    for (let i = 0, x = x0; i < seq.length; i++, x+=dx) {
-        if (tl.x + zx * x > div_aligned.offsetWidth)
-            break;  // do not create more if they don't fit
-
+    for (let i = imin, x = x0 + imin * dx; i < imax; i++, x+=dx) {
         const r = view.shape === "rectangular" ?
             create_rect([x, y, dx, dy], tl, zx, zy) :
             create_asec([x, y, dx, dy], tl, zx);

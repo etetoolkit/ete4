@@ -50,18 +50,28 @@ async function init_pixi() {
 function create_seq_pixi_local(seq, box) {
     const container = new Container();
 
+    // TODO: Merge most of this code with the one in draw.js
     const [x0, y0, dx0, dy0] = box;
     const dx = dx0 / seq.length;
 
-    for (let i = 0, x = x0; i < seq.length; i++, x+=dx) {
-        if (x > div_aligned.offsetWidth)
-            break;  // do not create more if they don't fit
+    const [xmin, xmax] = [0, div_aligned.offsetWidth];
+    const imin = Math.max(0,          Math.floor((xmin - x0) / dx));
+    const imax = Math.min(seq.length, Math.ceil( (xmax - x0) / dx));
 
-        container.addChild(create_char(seq[i], [x, y0, dx, dy0]));
-    }
+    const [y, dy] = pad(y0, dy0, view.array.padding);
+
+    for (let i = imin, x = x0 + imin * dx; i < imax; i++, x+=dx)
+        container.addChild(create_char(seq[i], [x, y, dx, dy]));
 
     return container;
 }
+
+// Transform the interval [y0, y0+dy0] into one padded with the given fraction.
+function pad(y0, dy0, fraction) {
+    const dy = dy0 * (1 - fraction);
+    return [y0 + (dy0 - dy)/2, dy]
+}
+// TODO: Merge this code with the one in draw.js
 
 
 // Return a new sprite with the given character situated in the given box.
