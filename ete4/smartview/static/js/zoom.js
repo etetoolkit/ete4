@@ -47,7 +47,7 @@ window.zoom_into_box = zoom_into_box;  // exposed so it can be called in onclick
 
 // Zoom maintaining the given point on the screen.
 function zoom_around(point, zoom_in, do_zoom={x:true, y:true}, qz=undefined) {
-    if (!qz)
+    if (!qz)  // quotient zoom (how much to change the zoom) not given?
         qz = {x: (zoom_in ? 1.25 : 0.8),  // zoom change (quotient)
               y: (zoom_in ? 1.25 : 0.8)};
 
