@@ -81,6 +81,8 @@ const view = {
     zoom: {x: null, y: null},  // initially chosen depending on the tree size
     select_text: false,  // if true, clicking and moving the mouse selects text
 
+    aligned: {origin: 0, zoom: 1},  // for aligned panel view (only horizonally)
+
     // style
     default_rules: null,  // will contain an array of the original css rules
     node: {

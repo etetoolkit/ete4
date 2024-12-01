@@ -4,7 +4,7 @@ import { view } from "./gui.js";
 import { update } from "./draw.js";
 import { draw_minimap, update_minimap_visible_rect } from "./minimap.js";
 
-export { zoom_around, zoom_into_box, zoom_towards_box };
+export { zoom_around, zoom_into_box, zoom_towards_box, zoom_aligned };
 
 
 const zooming = {qz: {x: 1, y: 1}, timeout: undefined};
@@ -84,6 +84,21 @@ function zoom_xy(point, qz, do_zoom) {
 
     if (do_zoom.x || do_zoom.y)
         smooth_zoom(point);
+}
+
+
+// Zoom in the aligend panel.
+function zoom_aligned(x, zoom_in) {
+    const qz = zoom_in ? 1.25 : 0.8;  // zoom change (quotient)
+    const { origin, zoom } = view.aligned;  // shortcut
+
+    const zoom_new = qz * zoom;
+    const origin_new = origin + (1 / zoom - 1 / zoom_new) / view.zoom.x * x;
+
+    view.aligned.origin = Math.max(0, origin_new);
+    view.aligned.zoom = zoom_new;
+
+    update();
 }
 
 

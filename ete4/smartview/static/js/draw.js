@@ -177,8 +177,9 @@ function draw_aligned(items, xmax) {
     if (view.shape === "rectangular") {
         if (items) {
             div_aligned.style.display = "flex";  // show aligned panel
-            const tl = {x: 0, y: view.tl.y};  // relative "top-left" point
-            draw(div_aligned, items, tl, view.zoom);
+            const tl = {x: view.aligned.origin, y: view.tl.y};  // relative "top-left" point
+            const zoom = {x: view.zoom.x * view.aligned.zoom, y: view.zoom.y};
+            draw(div_aligned, items, tl, zoom);
         }
         else {  // no items in aligned panel
             div_aligned.style.display = "none";  // hide aligned panel

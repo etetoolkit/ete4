@@ -2,7 +2,7 @@
 
 import { view, menus, coordinates, reset_view, show_minimap, show_help }
     from "./gui.js";
-import { zoom_around } from "./zoom.js";
+import { zoom_around, zoom_aligned } from "./zoom.js";
 import { move_minimap_view } from "./minimap.js";
 import { drag_start, drag_stop, drag_move } from "./drag.js";
 import { search } from "./search.js";
@@ -117,7 +117,10 @@ function on_wheel(event) {
     const zoom_in = event.deltaY < 0;
     const do_zoom = {x: !event.ctrlKey, y: !event.altKey};
 
-    zoom_around(point, zoom_in, do_zoom);
+    if (div_aligned.contains(event.target))
+        zoom_aligned(point.x - div_aligned.offsetLeft, zoom_in);
+    else
+        zoom_around(point, zoom_in, do_zoom);
 }
 
 function is_svg(element) {
