@@ -47,14 +47,14 @@ async function init_pixi() {
 
 // Return a pixi container with an image for the sequence in box
 // (in local coordinates).
-function create_seq_pixi_local(seq, box) {
+function create_seq_pixi_local(seq, box, wmax) {
     const container = new Container();
 
     // TODO: Merge most of this code with the one in draw.js
     const [x0, y0, dx0, dy0] = box;
     const dx = dx0 / seq.length;
 
-    const [xmin, xmax] = [0, div_aligned.offsetWidth];
+    const [xmin, xmax] = [0, wmax];
     const imin = Math.max(0,          Math.floor((xmin - x0) / dx));
     const imax = Math.min(seq.length, Math.ceil( (xmax - x0) / dx));
 

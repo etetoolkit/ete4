@@ -201,28 +201,39 @@ function draw_aligned(items, xmax) {
 // Translate the position of the given item.
 function translate(item, shift) {
     if (item[0] === "text") {
-        const [ , box, anchor, text, fs_max, style] = item;
-        const [x, y, dx, dy] = box;
-        const tbox = [x + shift, y, dx, dy];
-        return ["text", tbox, anchor, text, fs_max, style];
+        const [ , box,  anchor, text, fs_max, style] = item;
+        return ["text", tbox(box, shift), anchor, text, fs_max, style];
     }
     else if (item[0] === "circle") {
         const [ , [x, y], radius, style] = item;
         return ["circle", [x + shift, y], radius, style];
     }
     else if (item[0] === "box") {
-        const [ , [x, y, w, h], style] = item;
-        return ["box", [x + shift, y, w, h], style];
+        const [ , box, style] = item;
+        return ["box", tbox(box, shift), style];
     }
     else if (item[0] === "rect") {
-        const [ , [x, y, w, h], style] = item;
-        return ["rect", [x + shift, y, w, h], style];
+        const [ , box, style] = item;
+        return ["rect", tbox(box, shift), style];
+    }
+    else if (item[0] === "seq") {
+        const [ , box, seq, seqtype, draw_text, fs_max, style, render] = item;
+        return ["seq", tbox(box, shift), seq, seqtype, draw_text, fs_max,
+                style, render];
     }
     else {
         // We are not translating anything else for the moment, including
         // nodeboxes or nodedots.
         return item;
     }
+}
+
+// Translate box by the given shift amount in x.
+function tbox(box, shift) {
+    if (shift === undefined)
+        throw new Error("missing shift argument");  // it happened
+    const [x, y, w, h] = box;
+    return [x + shift, y, w, h];
 }
 
 
@@ -252,12 +263,14 @@ function draw(element, items, tl, zoom, replace=true) {
     const app = element === div_tree    ? view.pixi_app_tree :
                 element === div_aligned ? view.pixi_app_aligned : null;
 
+    const wmax = element.offsetWidth;
+
     // The global svg element where all the created svgs will be.
     const g = create_svg_element("g");
 
     // Add graphics from items.
     items.forEach(item_as_list => {
-        const item = create_item(item_as_list, tl, zoom);
+        const item = create_item(item_as_list, tl, zoom, wmax);
         if (item === null) {  // we decided not to draw the element
             ;  // do nothing
         }
@@ -316,7 +329,7 @@ function replace_svg(element) {
 
 
 // Return the graphical (svg or pixi) element corresponding to a graphical item.
-function create_item(item, tl, zoom) {
+function create_item(item, tl, zoom, wmax) {
     // item looks like ["line", ...] for a line, etc.
 
     const [zx, zy] = [zoom.x, zoom.y];  // shortcut
@@ -431,7 +444,7 @@ function create_item(item, tl, zoom) {
         const [ , box, seq, seqtype, draw_text, fs_max, style, render] = item;
 
         return create_seq(box, seq, seqtype, draw_text, fs_max, tl, zx, zy,
-                          add_ns_prefix(style), render);
+                          add_ns_prefix(style), render, wmax);
     }
     else {
         console.log(`Unrecognized item: ${item}`);
@@ -767,42 +780,42 @@ function create_text(box, anchor, text, fs_max, tl, zx, zy, style="") {
 
 
 function create_seq(box, seq, seqtype, draw_text, fs_max,
-                    tl, zx, zy, style, render) {
+                    tl, zx, zy, style, render, wmax) {
     if (!["aa", "nt"].includes(seqtype))
         throw new Error(`unknown sequence type ${seqtype}`);
 
     if (view.render === "force raster" ||
         view.render === "auto" && (render === "raster" || render === "auto"))
         return create_seq_pixi(box, seq, seqtype, draw_text, fs_max,
-                               tl, zx, zy, style);
+                               tl, zx, zy, style, wmax);
     else if (view.render === "force svg" || render === "svg")
         return create_seq_svg(box, seq, seqtype, draw_text, fs_max,
-                              tl, zx, zy, style);
+                              tl, zx, zy, style, wmax);
     else
         throw new Error(`unknown render type ${render}`);
 }
 
 // With pixi.
 function create_seq_pixi(box, seq, seqtype, draw_text, fs_max,
-                         tl, zx, zy, style) {
-    let [x, y, dx, dy] = box;
-    x = zx * (x - tl.x);
-    y = zy * (y - tl.y);
-    dx = zx * dx;
-    dy = zy * dy;
-    return create_seq_pixi_local(seq, [x, y, dx, dy]);
+                         tl, zx, zy, style, wmax) {
+    const [x, y, dx, dy] = box;
+    const p = (view.shape === "rectangular") ?
+        tree2rect([x, y], tl, zx, zy) :
+        tree2circ([x, y], tl, zx);
+
+    return create_seq_pixi_local(seq, [p.x, p.y, dx * zx, dy * zy], wmax);
 }
 
 // With svg.
 function create_seq_svg(box, seq, seqtype, draw_text, fs_max,
-                        tl, zx, zy, style) {
+                        tl, zx, zy, style, wmax) {
     const colors = seqtype === "aa" ? aa_colors : nt_colors;
 
     // TODO: Merge most of this code with the one in pixi.js
     const [x0, y0, dx0, dy0] = box;
     const dx = dx0 / seq.length;
 
-    const [xmin, xmax] = [0, div_aligned.offsetWidth];
+    const [xmin, xmax] = [0, wmax];
     const imin = Math.max(0,          Math.floor((xmin - x0) / dx));
     const imax = Math.min(seq.length, Math.ceil( (xmax - x0) / dx));
 
