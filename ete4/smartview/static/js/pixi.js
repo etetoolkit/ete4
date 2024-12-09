@@ -1,6 +1,6 @@
 // Functions related to drawing raster graphics with pixi.
 
-import { Application, Sprite, Assets, Container } from '../external/pixi.min.mjs';
+import { Application, Sprite, Assets, Container, Point } from '../external/pixi.min.mjs';
 
 import { view } from "./gui.js";
 
@@ -51,17 +51,37 @@ function create_seq_pixi_local(seq, box, wmax) {
     const container = new Container();
 
     // TODO: Merge most of this code with the one in draw.js
-    const [x0, y0, dx0, dy0] = box;
-    const dx = dx0 / seq.length;
+    // Find the elements of the array that will be drawn.
+    const [x0, y0, dx0, dy0] = box;  // box containing all drawing
+    const dx = dx0 / seq.length;  // dx of a single element
 
-    const [xmin, xmax] = [0, wmax];
+    const [xmin, xmax] = [0, wmax];  // things outside will not be drawn
     const imin = Math.max(0,          Math.floor((xmin - x0) / dx));
     const imax = Math.min(seq.length, Math.ceil( (xmax - x0) / dx));
 
     const [y, dy] = pad(y0, dy0, view.array.padding);
 
-    for (let i = imin, x = x0 + imin * dx; i < imax; i++, x+=dx)
-        container.addChild(create_char(seq[i], [x, y, dx, dy]));
+    // Fill the container with sprites for the characters between imin and imax.
+    let x = 0;
+    Array.from(seq).slice(imin, imax).forEach(char => {
+        const sprite = new Sprite(view.pixi_sheet.textures[char]);
+        sprite.x = x;
+        x += sprite.width;
+        container.addChild(sprite);
+    });
+
+    // Position and size of the sequence.
+    container.x = x0 - xmin;
+    container.y = y0;
+    container.setSize(dx0, dy);
+
+    if (view.shape === "circular") {
+        const [zx, zy] = [view.zoom.x, view.zoom.y];
+        const tl = view.tl;
+        container.pivot = new Point(0, container.height / 2);
+        container.rotation = Math.atan2(container.y + zy * tl.y,
+                                        container.x + zx * tl.x);
+    }
 
     return container;
 }
@@ -72,19 +92,6 @@ function pad(y0, dy0, fraction) {
     return [y0 + (dy0 - dy)/2, dy]
 }
 // TODO: Merge this code with the one in draw.js
-
-
-// Return a new sprite with the given character situated in the given box.
-function create_char(char, box) {
-    const sprite = new Sprite(view.pixi_sheet.textures[char]);
-    const [x, y, w, h] = box;
-
-    sprite.x = x;
-    sprite.y = y;
-    sprite.setSize(w, h);
-
-    return sprite;
-}
 
 
 // Clear the canvas by removing all the sprites.
