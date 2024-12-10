@@ -7,7 +7,8 @@ from math import pi
 from ..utils import InvalidUsage, get_random_string
 from .draw_helpers import *
 from copy import deepcopy
-
+import sys
+sys.setrecursionlimit(10000)  # Adjust the value as needed
 CHAR_HEIGHT = 1.4 # char's height to width ratio
 
 ALLOWED_IMG_EXTENSIONS = [ "png", "svg", "jpeg" ]
@@ -134,6 +135,7 @@ class Face:
 
         self._check_own_content()
         x, y = point
+        
         dx, dy = size
 
         zx, zy, za = drawer.zoom
@@ -166,6 +168,7 @@ class Face:
             avail_dy = dy / n_row
             aligned_x = drawer.node_size(drawer.tree)[0]\
                     if drawer.panel == 0 else drawer.xmin
+
             x = aligned_x + dx_before
 
             if pos == 'aligned_bottom':
@@ -189,6 +192,10 @@ class Face:
             max(avail_dx - 2 * padding_x, 0) if avail_dx else None,
             max(avail_dy - 2 * padding_y, 0))
 
+        # if self.name =="Scale_Face":
+        #     print("Scale_Face")
+        #     print("dx_before", dx_before)
+        #     print(x + padding_x)
         return self._box
 
     def fits(self):
@@ -1460,7 +1467,7 @@ class ScaleFace(Face):
 
         Face.__init__(self, name=name,
                 padding_x=padding_x, padding_y=padding_y)
-
+        self.name = "Scale_Face"
         self.width = width
         self.height = None
         self.range = scale_range
@@ -1492,7 +1499,7 @@ class ScaleFace(Face):
 
         if drawer.TYPE == 'circ' and abs(point[1]) >= pi/2:
             pos = swap_pos(pos)
-
+        
         box = super().compute_bounding_box(
             drawer,
             point, size,
@@ -1504,6 +1511,7 @@ class ScaleFace(Face):
             dx_before, dy_before)
 
         x, y, _, dy = box
+
         zx, zy = self.zoom
 
         self.viewport = (drawer.viewport.x, drawer.viewport.x + drawer.viewport.dx)
@@ -1516,6 +1524,7 @@ class ScaleFace(Face):
             y = y + dy - height
 
         self._box = Box(x, y, self.width / zx, height)
+        
         return self._box
 
     def draw(self, drawer):
@@ -1524,6 +1533,7 @@ class ScaleFace(Face):
 
         p1 = (x0, y + dy - 5 / zy)
         p2 = (x0 + self.width, y + dy - self.vt_line_height / (2 * zy))
+
         if drawer.TYPE == 'circ':
             p1 = cartesian(p1)
             p2 = cartesian(p2)
@@ -1532,6 +1542,7 @@ class ScaleFace(Face):
 
 
         nticks = round((self.width * zx) / self.tick_width)
+
         dx = self.width / nticks
         range_factor = (self.range[1] - self.range[0]) / self.width
 
