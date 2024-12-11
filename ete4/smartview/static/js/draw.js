@@ -43,7 +43,7 @@ async function draw_tree() {
         // Get the drawing commands.
         const commands = await api(`/trees/${get_tid()}/draw?${qs}`);
 
-        // Separate them per panel. xmax it the in-tree farthest x drawn.
+        // Separate them per panel (xmax is the in-tree farthest x drawn).
         const [items, xmax] = get_items_per_panel(commands);
         const [items_tree, items_aligned] = [items[0], items[1]];
 
