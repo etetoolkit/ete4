@@ -407,6 +407,12 @@ function create_item(item, tl, zoom, wmax) {
 
         return create_circle(center, radius, tl, zx, zy, add_ns_prefix(style));
     }
+    else if (item[0] === "polygon") {
+        const [ , center, radius, shape, style] = item;
+
+        return create_polygon(center, radius, shape, tl, zx, zy,
+                              add_ns_prefix(style), true);
+    }
     else if (item[0] === "box") {
         const [ , box, style] = item;
 
@@ -546,7 +552,7 @@ function create_dot(point, dy_max, tl, zx, zy, styles) {
     if (shape === "circle")
         return create_circle(point, r, tl, zx, zy, styles);
     else
-        return create_polygon(shape, point, r, tl, zx, zy, styles);
+        return create_polygon(point, r, shape, tl, zx, zy, styles);
 }
 
 
@@ -713,23 +719,27 @@ function create_circle(center, radius, tl, zx, zy, style="") {
 
 
 // Create a polygon.
-function create_polygon(name, center, r, tl, zx, zy, style="") {
-    const n = typeof name === "number" ? name :
+function create_polygon(center, r, shape, tl, zx, zy, style="", resize=false) {
+    const n = typeof shape === "number" ? shape :
           {"triangle": 3,
            "square":   4,
            "pentagon": 5,
            "hexagon":  6,
            "heptagon": 7,
-           "octogon":  8}[name];
+           "octogon":  8}[shape];
 
     if (n === undefined)
-        throw new Error(`unknown dot shape ${name}`);
+        throw new Error(`unknown dot shape ${shape}`);
 
     const c = view.shape === "rectangular" ?  // center point in screen coords
         tree2rect(center, tl, zx, zy) :
         tree2circ(center, tl, zx);
 
-    const s = 2 * r * Math.tan(Math.PI / n);  // side length
+    // When we put a polygon as a nodedot we don't need the correction,
+    // but when used as a face it would look bad without it.
+    const correction = resize ? Math.atan(n - 2) * 2 / Math.PI : 1;
+
+    const s = 2 * r * Math.tan(Math.PI / n) * correction; // side length
     let p = {x: c.x - s/2,  // starting point
              y: c.y + r};
 

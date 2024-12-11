@@ -229,6 +229,33 @@ class CircleFace(Face):
         # NOTE: For small r (in circular mode), that size is just approximate.
 
 
+class PolygonFace(Face):
+    """A polygon."""
+
+    def __init__(self, rmax=None, shape=3, style=None):
+        self.shape = shape  # name of the shape or number of edges
+        self.rmax = rmax  # maximum "radius" in pixels
+        self.style = style or ''
+
+    def draw(self, nodes, size, collapsed, zoom=(1, 1), ax_ay=(0, 0), r=1):
+        dx, dy = size
+        zx, zy = zoom
+
+        # Find the (approx.) radius of circumscribing circle in pixels.
+        cr = zy * r * dy / 2
+        if dx > 0:
+            cr = min(cr, zx * dx / 2)
+        if self.rmax:
+            cr = min(cr, self.rmax)
+
+        # Return the graphic and its size.
+        center = (cr / zx, cr / (r * zy))  # in tree coordinates
+        polygon = gr.draw_polygon(center, cr, self.shape, self.style)
+
+        return [polygon], Size(2*cr/zx, 2*cr/(r*zy))
+        # NOTE: For small r (in circular mode), that size is just approximate.
+
+
 class BoxedFace(Face):
     """A shape defined by a box (with optionally a text inside)."""
     # Base class for BoxFace and RectFace.

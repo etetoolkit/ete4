@@ -116,7 +116,7 @@ def draw_group(elements, circular, shift):
             # The points in these elements are always in rectanglar coords.
             (x1, y1), (x2, y2) = element[1], element[2]
             yield [eid, (x0 + x1, y0 + y1), (x0 + x2, y0 + y2)] + element[3:]
-        elif eid in ['nodedot', 'circle']:
+        elif eid in ['nodedot', 'circle', 'polygon']:
             # The center of the circle is always in rectangular coords.
             x, y = element[1]
             yield [eid, (x0 + x, y0 + y)] + element[2:]
