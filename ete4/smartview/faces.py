@@ -45,12 +45,13 @@ class Face:
 class EvalTextFace(Face):
     """A text that results from evaluating an expression on the node."""
 
-    def __init__(self, expression, fs_min=2, fs_max=16, style=None):
+    def __init__(self, expression, fs_min=2, fs_max=16, rotation=0, style=None):
         self.code = (expression if type(expression) != str else
                      compile(expression, '<string>', 'eval'))
         self.style = style or ('text_' + expression)
         self.fs_min = fs_min
         self.fs_max = fs_max
+        self.rotation = rotation
 
     def draw(self, nodes, size, collapsed, zoom=(1, 1), ax_ay=(0, 0), r=1):
         # Get text(s) from applying expression to nodes.
@@ -78,8 +79,8 @@ class EvalTextFace(Face):
         x = ax * (size.dx - size_used.dx)
 
         # Get the graphic elements to draw.
-        elements = list(draw_texts(make_box((x, 0), size_used),
-                                   (ax, ay), texts, self.fs_max, self.style))
+        elements = list(draw_texts(make_box((x, 0), size_used), (ax, ay), texts,
+                                   self.fs_max, self.rotation, self.style))
 
         return elements, size_used
 
@@ -87,18 +88,18 @@ class EvalTextFace(Face):
 class TextFace(EvalTextFace):
     """A fixed text."""
 
-    def __init__(self, text, fs_min=2, fs_max=16, style=None):
+    def __init__(self, text, fs_min=2, fs_max=16, rotation=0, style=None):
         expression = '"%s"' % text.replace('"', r'\"')
-        super().__init__(expression, fs_min, fs_max, style)
+        super().__init__(expression, fs_min, fs_max, rotation, style)
 
 
 class PropFace(EvalTextFace):
     """A text showing the given property, and optionally a special format."""
 
-    def __init__(self, prop, fmt='%s', fs_min=2, fs_max=16, style=None):
+    def __init__(self, prop, fmt='%s', fs_min=2, fs_max=16, rotation=0, style=None):
         pexp = prop if prop in ['name', 'dist', 'support'] else f'p["{prop}"]'
         expression = f'"{fmt}" % {pexp} if "{prop}" in p else ""'
-        super().__init__(expression, fs_min, fs_max, style)
+        super().__init__(expression, fs_min, fs_max, rotation, style)
 
 
 def make_nodes_summary(nodes, code=None):
@@ -167,14 +168,15 @@ def text_repr(texts, all_have):
         return texts[:6] + ['[...]']
 
 
-def draw_texts(box, ax_ay, texts, fs_max, style):
+def draw_texts(box, ax_ay, texts, fs_max, rotation, style):
     """Yield texts so they fit in the box."""
     x = box.x
     y = box.y  # will advance for each text
     dx = box.dx
     dy = box.dy / len(texts)
     for text in texts:
-        yield gr.draw_text(Box(x, y, dx, dy), ax_ay, text, fs_max, style)
+        yield gr.draw_text(Box(x, y, dx, dy), ax_ay, text,
+                           fs_max, rotation, style)
         y += dy
 
 

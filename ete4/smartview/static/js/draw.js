@@ -201,12 +201,16 @@ function draw_aligned(items, xmax) {
 // Translate the position of the given item.
 function translate(item, shift) {
     if (item[0] === "text") {
-        const [ , box,  anchor, text, fs_max, style] = item;
-        return ["text", tbox(box, shift), anchor, text, fs_max, style];
+        const [ , box,  anchor, text, fs_max, rotation, style] = item;
+        return ["text", tbox(box, shift), anchor, text, fs_max, rotation, style];
     }
     else if (item[0] === "circle") {
         const [ , [x, y], radius, style] = item;
         return ["circle", [x + shift, y], radius, style];
+    }
+    else if (item[0] === "polygon") {
+        const [ , [x, y], radius, shape, style] = item;
+        return ["polygon", [x + shift, y], radius, shape, style];
     }
     else if (item[0] === "box") {
         const [ , box, style] = item;
@@ -414,12 +418,12 @@ function create_item(item, tl, zoom, wmax) {
         return create_rect(box, tl, zx, zy, add_ns_prefix(style));
     }
     else if (item[0] === "text") {
-        const [ , box, anchor, text, fs_max, style] = item;
+        const [ , box, anchor, text, fs_max, rotation, style] = item;
 
         // TODO: Remove the next line if I'm sure it shouldn't be there.
         //        const s = typeof style === "string" ? get_class_name(style) : style;
 
-        return create_text(box, anchor, text, fs_max, tl, zx, zy,
+        return create_text(box, anchor, text, fs_max, rotation, tl, zx, zy,
                            add_ns_prefix(style));
     }
     else if (item[0] === "array") {
@@ -752,7 +756,8 @@ function create_polygon(name, center, r, tl, zx, zy, style="") {
 }
 
 
-function create_text(box, anchor, text, fs_max, tl, zx, zy, style="") {
+function create_text(box, anchor, text, fs_max, rotation,
+                     tl, zx, zy, style="") {
     const [x, y, fs, text_anchor] = view.shape === "rectangular" ?
         get_text_placement_rect(box, anchor, text, fs_max, tl, zx, zy, style) :
         get_text_placement_circ(box, anchor, text, fs_max, tl, zx, style);
@@ -767,6 +772,9 @@ function create_text(box, anchor, text, fs_max, tl, zx, zy, style="") {
     });
 
     t.appendChild(document.createTextNode(text));
+
+    if (rotation != 0)
+        add_rotation(t, rotation, x, y);
 
     if (view.shape === "circular") {
         const angle = Math.atan2(zy * tl.y + y, zx * tl.x + x) * 180 / Math.PI;
@@ -834,7 +842,7 @@ function create_seq_svg(box, seq, seqtype, draw_text, fs_max,
         if (draw_text)  // draw a letter too
             if (dx * zx > 5)  // but only if there's space
                 g.appendChild(create_text([x, y, dx, dy], [0.5, 0.5],
-                                            seq[i], fs_max, tl, zx, zy));
+                                          seq[i], fs_max, 0, tl, zx, zy));
     }
 
     return g;
