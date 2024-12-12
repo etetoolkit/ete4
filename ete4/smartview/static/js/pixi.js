@@ -73,7 +73,7 @@ function create_seq_pixi_local(seq, box, wmax) {
     // Position and size of the sequence.
     container.x = x0 - xmin;
     container.y = y0;
-    container.setSize(dx0, dy);
+    container.setSize((imax - imin)*dx, dy);
 
     if (view.shape === "circular") {
         const [zx, zy] = [view.zoom.x, view.zoom.y];
