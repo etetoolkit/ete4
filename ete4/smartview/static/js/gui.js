@@ -718,13 +718,13 @@ function on_box_wheel(event, box) {
     event.preventDefault();
 
     const point = {x: event.pageX, y: event.pageY};
-    const zoom_in = event.deltaY < 0;
+    const deltaY = event.deltaY;
     const do_zoom = {x: !event.ctrlKey, y: !event.altKey};
 
     if (view.shape === "rectangular" && view.smart_zoom)
-        zoom_towards_box(box, point, zoom_in, do_zoom);
+        zoom_towards_box(box, point, deltaY, do_zoom);
     else
-        zoom_around(point, zoom_in, do_zoom);
+        zoom_around(point, deltaY, do_zoom);
 }
 
 

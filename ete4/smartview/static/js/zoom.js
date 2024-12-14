@@ -46,10 +46,11 @@ window.zoom_into_box = zoom_into_box;  // exposed so it can be called in onclick
 
 
 // Zoom maintaining the given point on the screen.
-function zoom_around(point, zoom_in, do_zoom={x:true, y:true}, qz=undefined) {
-    if (!qz)  // quotient zoom (how much to change the zoom) not given?
-        qz = {x: (zoom_in ? 1.25 : 0.8),  // zoom change (quotient)
-              y: (zoom_in ? 1.25 : 0.8)};
+function zoom_around(point, deltaY, do_zoom={x:true, y:true}, qz=undefined) {
+    if (!qz) { // quotient zoom (how much to change the zoom) not given?
+        const factor = Math.exp(-deltaY/1000);
+        qz = {x: factor, y: factor};  // zoom change (quotient)
+    }
 
     if (view.shape === "rectangular") {
         zoom_xy(point, qz, do_zoom);
@@ -88,8 +89,8 @@ function zoom_xy(point, qz, do_zoom) {
 
 
 // Zoom in the aligend panel.
-function zoom_aligned(x, zoom_in) {
-    const qz = zoom_in ? 1.25 : 0.8;  // zoom change (quotient)
+function zoom_aligned(x, zoom_in, deltaY) {
+    const qz = Math.exp(-deltaY/1000);  // zoom change (quotient)
     const { origin, zoom } = view.aligned;  // shortcut
 
     const zoom_new = qz * zoom;
@@ -122,23 +123,25 @@ function zoom_angular(point, qz) {
 }
 
 
-// Zoom adaptatively so that the given box tends to occupy the full screen.
-function zoom_towards_box(box, point, zoom_in, do_zoom) {
-    let qx, qy;
-    if (zoom_in) {
-        const [dx, dy] = [box[2], box[3]];
-        qx = 0.8 * div_tree.offsetWidth / (dx * view.zoom.x) - 1;
-        qy = 0.8 * div_tree.offsetHeight / (dy * view.zoom.y) - 1;
-    }
-    else {
-        const [dx, dy] = [3 * view.tree_size.width, 3 * view.tree_size.height];
-        qx = div_tree.offsetWidth / (dx * view.zoom.x) - 1,
-        qy = div_tree.offsetHeight / (dy * view.zoom.y) - 1;
-    }
-    const qz = {x: 1 + 0.2 * Math.atan(qx),
-                y: 1 + 0.2 * Math.atan(qy)};
 
-    zoom_xy(point, qz, do_zoom);
+// Zoom adaptatively so that the given box tends to occupy the full screen.
+function zoom_towards_box(box, point, deltaY, do_zoom) {
+    if (deltaY < 0) {  // zoom in
+        const [dx, dy] = [box[2], box[3]];
+        const lim = {x: 0.8 * div_tree.offsetWidth  / (dx * view.zoom.x),
+                     y: 0.8 * div_tree.offsetHeight / (dy * view.zoom.y)};
+        const qz = {x: Math.min(1.5, sigmoid(-deltaY/1000, lim.x)),
+                    y: Math.min(1.5, sigmoid(-deltaY/1000, lim.y))};
+        zoom_xy(point, qz, do_zoom);
+    }
+    else {  // zoom out
+        zoom_around(point, deltaY, do_zoom);
+    }
+}
+
+function sigmoid(x, lim) {  // helper function: s(0) = 1, and s(inf) = lim
+    const a = Math.atan(x) / (Math.PI / 2);  // a goes between 0 and 1
+    return 1 + a * (lim - 1);
 }
 
 

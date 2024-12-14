@@ -61,16 +61,16 @@ function on_keydown(event) {
     else if (key === "+") {
         const center = {x: div_tree.offsetWidth / 2,
                         y: div_tree.offsetHeight / 2};
-        const zoom_in = true;
+        const deltaY = -200;
         const do_zoom = {x: !event.ctrlKey, y: !event.altKey};
-        zoom_around(center, zoom_in, do_zoom);
+        zoom_around(center, deltaY, do_zoom);
     }
     else if (key === "-") {
         const center = {x: div_tree.offsetWidth / 2,
                         y: div_tree.offsetHeight / 2};
-        const zoom_in = false;
+        const deltaY = 200;
         const do_zoom = {x: !event.ctrlKey, y: !event.altKey};
-        zoom_around(center, zoom_in, do_zoom);
+        zoom_around(center, deltaY, do_zoom);
     }
     else if (key === "ArrowLeft") {
         const fraction = event.shiftKey ? 0.2 : 0.04;
@@ -118,9 +118,9 @@ function on_wheel(event) {
     const do_zoom = {x: !event.ctrlKey, y: !event.altKey};
 
     if (div_aligned.contains(event.target))
-        zoom_aligned(point.x - div_aligned.offsetLeft, zoom_in);
+        zoom_aligned(point.x - div_aligned.offsetLeft, zoom_in, event.deltaY);
     else
-        zoom_around(point, zoom_in, do_zoom);
+        zoom_around(point, event.deltaY, do_zoom);
 }
 
 function is_svg(element) {
@@ -223,14 +223,14 @@ function on_touchmove(event) {
         const [dx, dy] = [Math.abs(x1 - x0), Math.abs(y1 - y0)];
 
         const do_zoom = {x: dx > dx_min, y: dy > dy_min};
-        const zoom_in = (dx + dy) > (finger_d.x + finger_d.y);  // but not used
+        const deltaY = undefined;  // not used - we specify qz directly
         const qz = {x: dx / finger_d.x,   // the zoom ratio qz is the same
                     y: dy / finger_d.y};  // as the distance ratio
 
         if (view.shape === "circular")  // for those, we want zx == zy
             qz.x = qz.y = Math.sqrt(qz.x * qz.y);  // geometric mean
 
-        zoom_around({x: x1, y: y1}, zoom_in, do_zoom, qz);
+        zoom_around({x: x1, y: y1}, deltaY, do_zoom, qz);
 
         [finger_d.x, finger_d.y] = [Math.abs(x1 - x0), Math.abs(y1 - y0)];
     }
