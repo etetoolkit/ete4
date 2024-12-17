@@ -2,7 +2,7 @@
 
 import { view, menus, get_tid, on_box_click, on_box_wheel, tree_command, reset_view }
     from "./gui.js";
-import { create_seq_pixi_local, clear_pixi } from "./pixi.js";
+import { create_seq_pixi, clear_pixi } from "./pixi.js";
 import { update_minimap_visible_rect } from "./minimap.js";
 import { colorize_searches, get_search_class } from "./search.js";
 import { on_box_contextmenu } from "./contextmenu.js";
@@ -10,7 +10,8 @@ import { colorize_tags } from "./tag.js";
 import { colorize_labels } from "./label.js";
 import { api } from "./api.js";
 
-export { update, draw_tree, draw, get_class_name, get_items_per_panel };
+export { update, draw_tree, draw, get_class_name, get_items_per_panel,
+         tree2rect, tree2circ, pad };
 
 
 // Update the view of all elements (gui, tree, minimap).
@@ -824,29 +825,20 @@ function create_seq(box, seq, seqtype, draw_text, fs_max,
         throw new Error(`unknown render type ${render}`);
 }
 
-// With pixi.
-function create_seq_pixi(box, seq, seqtype, draw_text, fs_max,
-                         tl, zx, zy, style, wmax) {
-    const [x, y, dx, dy] = box;
-    const p = (view.shape === "rectangular") ?
-        tree2rect([x, y], tl, zx, zy) :
-        tree2circ([x, y], tl, zx);
-
-    return create_seq_pixi_local(seq, [p.x, p.y, dx * zx, dy * zy], wmax);
-}
 
 // With svg.
+// NOTE: Much of this code is similar to the one in pixi.js. Maybe merge?
 function create_seq_svg(box, seq, seqtype, draw_text, fs_max,
                         tl, zx, zy, style, wmax) {
     const colors = seqtype === "aa" ? aa_colors : nt_colors;
 
-    // TODO: Merge most of this code with the one in pixi.js
     const [x0, y0, dx0, dy0] = box;
     const dx = dx0 / seq.length;
 
-    const [xmin, xmax] = [0, wmax];
-    const imin = Math.max(0,          Math.floor((xmin - x0) / dx));
-    const imax = Math.min(seq.length, Math.ceil( (xmax - x0) / dx));
+    const imin = Math.max(0, Math.floor((tl.x - x0) / dx));
+    const imax = view.shape === "rectangular" ?
+          Math.min(seq.length, (wmax / zx + tl.x - x0) / dx) :
+          seq.length;
 
     const [y, dy] = pad(y0, dy0, view.array.padding);
 
