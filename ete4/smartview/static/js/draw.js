@@ -493,21 +493,32 @@ function create_box(box, tl, zx, zy, style="") {
 
 
 function create_rect(box, tl, zx, zy, style="") {
-    const [x, y, w, h] = box;
+    let element;
 
-    const p = view.shape === "rectangular" ?
-        tree2rect([x, y], tl, zx, zy) :
-        tree2circ([x, y], tl, zx);
+    if (view.shape === "rectangular") {
+        const [x, y, w, h] = box;
+        const p = tree2rect([x, y], tl, zx, zy);
 
-    const element = create_svg_element("rect", {
-        "x": p.x, "y": p.y,
-        "width": zx * w, "height": zy * h,
-    });
+        element = create_svg_element("rect", {
+            "x": p.x, "y": p.y,
+            "width": zx * w, "height": zy * h,
+        });
+    }
+    else {  // circular
+        const [r, a, dr, da] = box;
+        const z = zy;
+        const p00 = tree2circ([r, a], tl, z),
+              p01 = tree2circ([r, a + da], tl, z),
+              p10 = tree2circ([r + dr, a + da/2 * dr / (r + dr)], tl, z),
+              p11 = tree2circ([r + dr, a + da - da/2 * dr / (r + dr)], tl, z);
 
-    if (view.shape === "circular") {
-        const angle = 180 / Math.PI * Math.atan2(zy * tl.y + p.y,
-                                                 zx * tl.x + p.x);
-        add_rotation(element, angle, p.x, p.y);
+        element = create_svg_element("path", {
+            "d": `M ${p00.x} ${p00.y}
+                  L ${p10.x} ${p10.y}
+                  L ${p11.x} ${p11.y}
+                  L ${p01.x} ${p01.y}
+                  L ${p00.x} ${p00.y}`,
+        });
     }
 
     add_style(element, style);
