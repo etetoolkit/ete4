@@ -333,7 +333,7 @@ class ImageFace(BoxedFace):
         self.drawing_fn = lambda box: gr.draw_image(box, href, style or '');
 
 
-class SeqFace:
+class SeqFace(Face):
     """A sequence of nucleotides or amino acids."""
 
     def __init__(self, seq, seqtype='aa', poswidth=15, draw_text=True,
