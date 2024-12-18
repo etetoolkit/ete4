@@ -9,7 +9,7 @@ from functools import lru_cache
 import inspect
 import copy
 
-from .faces import Face, PropFace
+from .faces import Face, PropFace, TextFace
 
 
 # Layouts have all the information needed to represent a tree.
@@ -170,7 +170,7 @@ class Decoration:
     anchor: tuple
 
     def __init__(self, face, position='top', column=0, anchor=None):
-        self.face = face
+        self.face = TextFace(face) if type(face) is str else face
         self.position = position
         self.column = column
         self.anchor = anchor or default_anchors[position]
