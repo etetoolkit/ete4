@@ -46,7 +46,7 @@ function drag_move(point) {
                       y: point.y - dragging.p_last.y};
     dragging.p_last = point;
 
-    if (dragging.element === div_aligned) {
+    if (dragging.element === div_aligned_grabber) {
         view.align_bar += 100 * movement.x / div_tree.offsetWidth;
         view.align_bar = Math.min(Math.max(view.align_bar, 1), 99);  // clip
         div_aligned.style.width = `${100 - view.align_bar}%`;
@@ -55,6 +55,21 @@ function drag_move(point) {
         view.pixi_app_aligned.resizeTo = div_aligned;  // otherwise it forgets
 
         menus.pane.refresh();  // update the info box
+    }
+    else if (dragging.element === div_aligned) {
+        dragging.moved = true;
+
+        const [scale_x, ] = get_drag_scale();
+        view.aligned.origin += scale_x * movement.x;
+
+        if (view.aligned.origin > 0) {
+            const dx = point.x - dragging.p0.x;
+            Array.from(div_aligned.children[1].children).forEach(g =>
+                g.setAttribute("transform", `translate(${dx} 0)`));
+        }
+        else {
+            view.aligned.origin = 0;
+        }
     }
     else if (dragging.element) {
         dragging.moved = true;
@@ -84,6 +99,8 @@ function drag_move(point) {
 function get_drag_scale() {
     if (dragging.element === div_tree)
         return [-1 / view.zoom.x, -1 / view.zoom.y];
+    else if (dragging.element === div_aligned)
+        return [-1 / view.aligned.zoom / view.zoom.x, 0];
     else // dragging.element === div_visible_rect
         return [1 / view.minimap.zoom.x, 1 / view.minimap.zoom.y];
 }
