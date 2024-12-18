@@ -108,7 +108,8 @@ function on_keydown(event) {
 function on_wheel(event) {
     const g_panel0 = div_tree.children[0].children[0];  // main "g" svg element
 
-    if (!is_svg(event.target) || g_panel0.contains(event.target))
+    if ((!div_aligned_grabber.contains(event.target) && !is_svg(event.target))
+        || g_panel0.contains(event.target))
         return;  // it will be done on the nodes instead
 
     event.preventDefault();
@@ -117,7 +118,8 @@ function on_wheel(event) {
     const zoom_in = event.deltaY < 0;
     const do_zoom = {x: !event.ctrlKey, y: !event.altKey};
 
-    if (div_aligned.contains(event.target))
+    if (div_aligned.contains(event.target) ||
+        div_aligned_grabber.contains(event.target))
         zoom_aligned(point.x - div_aligned.offsetLeft, zoom_in, event.deltaY);
     else
         zoom_around(point, event.deltaY, do_zoom);
