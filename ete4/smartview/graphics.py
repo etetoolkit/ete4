@@ -47,6 +47,13 @@ def draw_outline(box):
     return ['outline', box]
 
 
+# Tree drawing commands.
+
+def draw_header(text, fs_max=None, rotation=0, style=''):
+    return ['header', 0, text, fs_max, rotation, style]
+# NOTE: the "0" is a x shift, so it can be translated in draw.js.
+
+
 # Other (drawing) commands.
 
 def draw_line(p1, p2, style=''):

@@ -232,6 +232,10 @@ function translate(item, shift) {
         return ["seq", tbox(box, shift), seq, seqtype, draw_text, fs_max,
                 style, render];
     }
+    else if (item[0] === "header") {
+        const [ , x, text, fs_max, rotation, style] = item;
+        return ["header", x + shift, text, fs_max, rotation, style];
+    }
     else {
         // We are not translating anything else for the moment, including
         // nodeboxes or nodedots.
@@ -467,6 +471,12 @@ function create_item(item, tl, zoom, wmax) {
 
         return create_seq(box, seq, seqtype, draw_text, fs_max, tl, zx, zy,
                           add_ns_prefix(style), render, wmax);
+    }
+    else if (item[0] === "header") {
+        const [ , x, text, fs_max, rotation, style] = item;
+
+        return create_header(x, text, fs_max, rotation, tl, zx, zy,
+                             add_ns_prefix(style));
     }
     else {
         console.log(`Unrecognized item: ${item}`);
@@ -852,6 +862,53 @@ function create_text(box, anchor, text, fs_max, rotation,
     add_style(t, style);
 
     return t;
+}
+
+
+function create_header(x, text, fs_max, rotation, tl, zx, zy, style="") {
+    if (view.shape !== "rectangular")
+        return null;
+
+    const px = zx * (x - tl.x),
+          py = Math.max(50, - zy * tl.y);
+
+    const g = create_svg_element("g");
+
+    g.appendChild(create_svg_element("rect", {
+        "x": px,
+        "y": 0,
+        "width": div_aligned.offsetWidth - px,
+        "height": py + 15,
+        "fill": "white",
+    }));
+
+    const line = create_svg_element("line", {
+        "x1": px, "y1": py + fs_max,
+        "x2": div_aligned.offsetWidth, "y2": py + fs_max,
+    });
+    add_style(line, {
+        stroke: "#e0e0e0",
+        strokeWidth: "3px",
+    });
+
+    g.appendChild(line);
+
+    const t = create_svg_element("text", {
+        "x": px,
+        "y": py,
+        "font-size": `${fs_max}px`,  // NOTE: We set the font size to font max!
+    });
+
+    t.appendChild(document.createTextNode(text));
+
+    if (rotation != 0)
+        add_rotation(t, rotation, px + 15, py);  // shift px to avoid clipping
+
+    add_style(t, style);
+
+    g.appendChild(t);
+
+    return g;
 }
 
 

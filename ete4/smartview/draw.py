@@ -7,7 +7,7 @@ from math import sin, cos, pi, sqrt, atan2
 from ..core import operations as ops
 from .coordinates import Size, Box, make_box, get_xs, get_ys
 from .layout import Decoration, Label, update_style
-from .faces import EvalTextFace
+from .faces import EvalTextFace, eval_as_str
 from . import graphics as gr
 
 
@@ -32,8 +32,6 @@ def draw(tree, layouts, overrides=None, labels=None,
     # Override tree style (with options that normally come from the gui).
     style.update(overrides)
 
-    # TODO: Draw the decos.
-
     drawer_class = {'rectangular': DrawerRect,
                     'circular':    DrawerCirc}[style['shape']]
 
@@ -43,6 +41,13 @@ def draw(tree, layouts, overrides=None, labels=None,
                               viewport, zoom, collapsed_ids, searches)
 
     yield from drawer_obj.draw()
+
+    for deco in decos:
+        if deco.position == 'header':
+            face = deco.face  # which must be a TextFace or similar
+            text = eval_as_str(face.code, tree)
+            yield gr.set_panel(deco.column + 1)
+            yield gr.draw_header(text, face.fs_max, face.rotation, face.style)
 
 
 class Drawer:
