@@ -59,7 +59,7 @@ async function draw_tree() {
             replace_svg(div_aligned);  // so we swap the main svg (faster to draw)
         }
 
-
+        // Draw all the items, in the main div_tree and in the aligned panel.
         let xmax = 0;
         for (const panel of Object.keys(items).sort()) {
             if (panel == 0)  // draw all received items for tree in div_tree
