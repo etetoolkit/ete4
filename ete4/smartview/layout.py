@@ -136,6 +136,7 @@ DEFAULT_TREE_STYLE = {  # the default style of a tree
 #      'aliases': {
 #          'support': {'fill': 'green'},  # changes the default one
 #          'my-leaf': {'fill': 'blue', 'font-weight': 'bold'},
+#       },
 #   }
 #
 # Some properties will be used directly by the backend:
