@@ -410,7 +410,7 @@ class DrawerRect(Drawer):
         yield gr.draw_nodebox(box, node.name, props, node_id, result_of, style)
 
     def draw_nodes(self, nodes, box, bdy):  # bdy: branch dy (height)
-        """Return graphic commands for the contents of nodes, and xmax."""
+        """Return style and graphic commands for the contents of nodes."""
         return super().draw_nodes(nodes, box, bdy, circular=False)
 
 
