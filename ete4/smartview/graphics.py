@@ -72,6 +72,9 @@ def draw_text(box, anchor, text, fs_max=None, rotation=0, style=''):
 # NOTE: We include  fs_max  in addition to just  box  because in circular mode
 # we translate the boxes for the aligned items, changing their pixel size.
 
+def draw_image(box, href, style=''):
+    return ['image', box, href, style]
+
 def draw_array(box, a):
     return ['array', box, a]
 
@@ -120,7 +123,7 @@ def draw_group(elements, circular, shift):
             # The center of the circle is always in rectangular coords.
             x, y = element[1]
             yield [eid, (x0 + x, y0 + y)] + element[2:]
-        elif eid in ['box', 'rect']:
+        elif eid in ['box', 'rect', 'image']:
             x, y, w, h = element[1]
             yield [eid, (x0 + x, y0 + y, w, h)] + element[2:]
         else:

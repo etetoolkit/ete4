@@ -221,6 +221,10 @@ function translate(item, shift) {
         const [ , box, style] = item;
         return ["rect", tbox(box, shift), style];
     }
+    else if (item[0] === "image") {
+        const [ , box, href, style] = item;
+        return ["image", tbox(box, shift), href, style];
+    }
     else if (item[0] === "seq") {
         const [ , box, seq, seqtype, draw_text, fs_max, style, render] = item;
         return ["seq", tbox(box, shift), seq, seqtype, draw_text, fs_max,
@@ -433,6 +437,11 @@ function create_item(item, tl, zoom, wmax) {
         return create_text(box, anchor, text, fs_max, rotation, tl, zx, zy,
                            add_ns_prefix(style));
     }
+    else if (item[0] === "image") {
+        const [ , box, href, style] = item;
+
+        return create_image(box, href, tl, zx, zy, add_ns_prefix(style));
+    }
     else if (item[0] === "array") {
         const [ , box, array] = item;
         const [x0, y0, dx0, dy0] = box;
@@ -544,6 +553,41 @@ function create_asec(box, tl, z, style="") {
               L ${p01.x} ${p01.y}
               A ${z * r} ${z * r} 0 ${large} 0 ${p00.x} ${p00.y}`,
     });
+
+    add_style(element, style);
+
+    return element;
+}
+
+
+function create_image(box, href, tl, zx, zy, style="") {
+    let element;
+
+    if (view.shape === "rectangular") {
+        const [x, y, w, h] = box;
+        const p = tree2rect([x, y], tl, zx, zy);
+
+        element = create_svg_element("image", {
+            "href": href,
+            "x": p.x, "y": p.y,
+            "width": zx * w, "height": zy * h,
+        });
+    }
+    else {  // circular
+        const [r, a, dr, da] = box;
+        const z = zy;  // which is equal to zx too
+
+        const p = tree2circ([r, a], tl, z);
+
+        element = create_svg_element("image", {
+            "href": href,
+            "x": p.x, "y": p.y,
+            "width": z * dr, "height": zy * r * da,
+        });
+
+        const angle = (a + da/2) * 180 / Math.PI;
+        add_rotation(element, angle, p.x, p.y);
+    }
 
     add_style(element, style);
 

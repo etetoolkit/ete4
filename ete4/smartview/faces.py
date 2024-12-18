@@ -1,3 +1,5 @@
+import os
+from base64 import b64encode
 from math import pi
 import re  # so it can be used when evaluating expressions
 
@@ -260,10 +262,9 @@ class BoxedFace(Face):
     """A shape defined by a box (with optionally a text inside)."""
     # Base class for BoxFace and RectFace.
 
-    def __init__(self, wmax, hmax=None, style=None, text=None):
+    def __init__(self, wmax, hmax=None, text=None):
         self.wmax = wmax  # maximum width in pixels
         self.hmax = hmax  # maximum height in pixels
-        self.style = style or ''
         self.text = TextFace(text) if type(text) is str else text
 
         self.drawing_fn = None  # will be set by its subclasses
@@ -288,7 +289,7 @@ class BoxedFace(Face):
         # Return the graphics and their size.
         size = Size(w/zx, h/(r*zy))
         box = make_box((0, 0), size)
-        graphics = [self.drawing_fn(box, self.style)]
+        graphics = [self.drawing_fn(box)]
 
         if self.text:
             # Draw the text centered in x (0.5). But we have to shift the y
@@ -307,16 +308,29 @@ class BoxFace(BoxedFace):
     """A box (with optionally a text inside)."""
 
     def __init__(self, wmax, hmax=None, style=None, text=None):
-        super().__init__(wmax, hmax, style, text)
-        self.drawing_fn = gr.draw_box
+        super().__init__(wmax, hmax, text)
+        self.drawing_fn = lambda box: gr.draw_box(box, style or '')
 
 
 class RectFace(BoxedFace):
     """A rectangle (with optionally a text inside)."""
 
     def __init__(self, wmax, hmax=None, style=None, text=None):
-        super().__init__(wmax, hmax, style, text)
-        self.drawing_fn = gr.draw_rect
+        super().__init__(wmax, hmax, text)
+        self.drawing_fn = lambda box: gr.draw_rect(box, style or '')
+
+
+class ImageFace(BoxedFace):
+    """An image (with optionally a text inside)."""
+
+    def __init__(self, path, wmax, hmax=None, style=None, text=None):
+        super().__init__(wmax, hmax, text)
+        assert os.path.exists(path), f'missing image at {path}'
+        ext = os.path.splitext(path)[1][1:].lower()  # extension
+        assert ext in ['png', 'jpeg', 'jpg', 'svg'], f'invalid type: {path}'
+        href = ('data:image/' + ext + ';base64,' +
+                b64encode(open(path, 'rb').read()).decode('utf8'))
+        self.drawing_fn = lambda box: gr.draw_image(box, href, style or '');
 
 
 class SeqFace:
