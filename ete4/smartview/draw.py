@@ -77,7 +77,7 @@ class Drawer:
         self.nodeboxes = []  # boxes surrounding all nodes and collapsed boxes
         self.nodes_dx = [0]  # nodes dx, from root to current (with subnodes)
         self.bdy_dys = [[]]  # lists of branch dys and total dys
-        self.xmax_reached = 0  # maximum x value we reached in the tree
+        self.xmaxs = {0: 0}  # maximum x values we reached per panel
 
         point = self.xmin, self.ymin
 
@@ -98,7 +98,7 @@ class Drawer:
         # Draw them now in preorder (so they stack nicely, small over big ones).
         yield from self.nodeboxes[::-1]
 
-        yield gr.set_xmax(self.xmax_reached)
+        yield gr.set_xmaxs(self.xmaxs)
 
     def on_first_visit(self, point, it, graphics):
         """Update list of graphics to draw and return new position."""
@@ -151,13 +151,12 @@ class Drawer:
         dx, dy = self.content_size(it.node)              #      dy|      |
         x_before, y_before = x_after - dx, y_after - dy  #        +------+ after
 
-        style, content_graphics, xmax = self.draw_content(it.node,
-                                                          (x_before, y_before))
+        style, content_graphics = self.draw_content(it.node,
+                                                    (x_before, y_before))
         graphics += content_graphics
-        self.xmax_reached = max(self.xmax_reached, xmax)
 
         # dx of the node including all its graphics and its children's.
-        ndx = ((max(xmax, x_after) - x_before) if it.node.is_leaf else
+        ndx = ((max(self.xmaxs[0], x_after) - x_before) if it.node.is_leaf else
                (dx + self.nodes_dx.pop()))
         self.nodes_dx[-1] = max(self.nodes_dx[-1], ndx)  # keep track of max(dx)
 
@@ -170,7 +169,7 @@ class Drawer:
         return x_before, y_after
 
     def draw_content(self, node, point):
-        """Return the node content's style, graphic commands and its xmax."""
+        """Return the node content's style and graphic commands."""
         x, y = point
         dx, dy = self.content_size(node)
         box = Box(x, y, dx, dy)
@@ -195,7 +194,7 @@ class Drawer:
         self.bdy_dys[-1].append( (bdy, dy) )
 
         # Get the drawing commands and style that the user wants for this node.
-        style, node_commands, xmax = self.draw_nodes([node], box, bdy)
+        style, node_commands = self.draw_nodes([node], box, bdy)
 
         # Draw the branch line ("hz_line").
         if dx > 0:
@@ -217,7 +216,7 @@ class Drawer:
             commands.append(gr.draw_nodedot(dot_center, dy_max=min(bdy, dy-bdy),
                                             style=style.get('dot', '')))
 
-        return style, commands + node_commands, xmax
+        return style, commands + node_commands
 
     def flush_collapsed(self):
         """Yield representation and graphics from collapsed nodes."""
@@ -235,22 +234,20 @@ class Drawer:
         if not uncollapse:  # normal case: we represent the collapsed nodes
             graphics += self.draw_collapsed()  # it updates self.bdy_dys too
 
-            style, collapsed_graphics, xmax = self.draw_nodes(
+            style, collapsed_graphics = self.draw_nodes(
                 self.collapsed, self.outline, self.outline.dy / 2)
 
             graphics += collapsed_graphics
         else:  # forced uncollapse: we simply draw node0's content
             self.bdy_dys.append([])  # empty list of extra bdy_dys to add
             x, y, _, _ = self.outline
-            style, content_graphics, xmax = self.draw_content(node0, (x, y))
+            style, content_graphics = self.draw_content(node0, (x, y))
             graphics += content_graphics
-
-        self.xmax_reached = max(self.xmax_reached, xmax)
 
         self.collapsed = []  # reset the list of currently collapsed nodes
 
         x, y, dx, dy = self.outline
-        ndx = xmax - x
+        ndx = self.xmaxs[0] - x
 
         self.nodes_dx[-1] = max(self.nodes_dx[-1], ndx)
 
@@ -305,7 +302,7 @@ class Drawer:
         # NOTE: So the properties appear in the order given in included.
 
     def draw_nodes(self, nodes, box, bdy, circular):  # bdy: branch dy (height)
-        """Return style, graphic commands, and xmax for representing nodes."""
+        """Return style and graphic commands for representing nodes."""
         style = {}  # style
         decos = []  # decorations
 
@@ -323,13 +320,16 @@ class Drawer:
         decos.extend(make_deco(label) for label in self.labels
                      if is_valid_label(label, is_leaf))
 
-        # Get the graphic commands, and xmax, from applying the decorations.
-        commands, xmax = draw_decorations(decos, nodes, self.xmin, box, bdy,
-                                          self.zoom, self.content_height_min,
-                                          collapsed=self.collapsed,
-                                          circular=circular)
+        # Get the graphic commands, and xmaxs, from applying the decorations.
+        commands, xmaxs = draw_decorations(decos, nodes, self.xmin, box, bdy,
+                                           self.zoom, self.content_height_min,
+                                           collapsed=self.collapsed,
+                                           circular=circular)
 
-        return style, commands, xmax
+        for panel, x in xmaxs.items():
+            self.xmaxs[panel] = max(self.xmaxs.get(panel, 0), x)
+
+        return style, commands
 
 def read_label(label):
     """Return a Label from the label description as a tuple."""
@@ -498,7 +498,7 @@ class DrawerCirc(Drawer):
                                   node.name, props, node_id, result_of, style)
 
     def draw_nodes(self, nodes, box, bda):  # bda: branch da (height)
-        """Return graphic commands for the contents of nodes, and xmax."""
+        """Return style and graphic commands for the contents of nodes."""
         return super().draw_nodes(nodes, box, bda, circular=True)
 
 
@@ -530,16 +530,13 @@ def make_deco(label):
 
 def draw_decorations(decorations, nodes, xmin, content_box, bdy, zoom,
                      min_size, collapsed, circular=False):
-    """Return the graphic commands from the decorations, and xmax."""
+    """Return the graphic commands from the decorations, and xmaxs."""
     positions = {a.position for a in decorations}
 
-    xmax = content_box.x + content_box.dx
+    xmaxs = {0: content_box.x + content_box.dx}
     commands = []
 
     for pos in positions:
-        if pos == 'aligned':
-            commands.append(gr.set_panel(1))  # command to change to panel 1
-
         pos_box = get_position_box(content_box, bdy, pos)
         bdy_dy = bdy / content_box.dy
 
@@ -556,6 +553,9 @@ def draw_decorations(decorations, nodes, xmin, content_box, bdy, zoom,
 
         x_col = max(pos_box.x, xmin)  # where we start
         for icol, col in enumerate(columns):
+            if pos == 'aligned':  # here columns are "panels" (starting at 1)
+                commands.append(gr.set_panel(col + 1))
+
             rows = [a for a in decos_at_pos if a.column == col]
             dx_col = (pos_box.dx - (x_col - pos_box.x)) / (ncols - icol)
 
@@ -564,14 +564,18 @@ def draw_decorations(decorations, nodes, xmin, content_box, bdy, zoom,
                 elements, x_col = get_col_data(rows, x_col, dx_col, nodes,
                                                pos_box, pos, bdy_dy, zoom,
                                                min_size, collapsed, circular)
-                if pos != 'aligned':
-                    xmax = max(xmax, x_col)
+                if pos == 'aligned':
+                    xmaxs[col + 1] = max(xmaxs.get(col + 1, 0), x_col)
+                    x_col = xmin
+                else:
+                    xmaxs[0] = max(xmaxs[0], x_col)
+
                 commands += elements
 
-        if pos == 'aligned':
+        if pos == 'aligned':  # leaving the aligned panel
             commands.append(gr.set_panel(0))  # command to change to panel 0
 
-    return commands, xmax
+    return commands, xmaxs
 
 
 def get_col_data(rows, x_col, dx_col, nodes, pos_box, pos, bdy_dy, zoom,

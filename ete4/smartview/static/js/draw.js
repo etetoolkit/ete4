@@ -44,18 +44,32 @@ async function draw_tree() {
         // Get the drawing commands.
         const commands = await api(`/trees/${get_tid()}/draw?${qs}`);
 
-        // Separate them per panel (xmax is the in-tree farthest x drawn).
-        const [items, xmax] = get_items_per_panel(commands);
-        const [items_tree, items_aligned] = [items[0], items[1]];
+        // Separate them per panel (xmaxs is the farthest x drawn per panel).
+        const [items, xmaxs] = get_items_per_panel(commands);
 
         // Clear any graphics from pixi that there may be first.
         clear_pixi();
 
-        // The main function: draw all received items for tree in div_tree.
-        draw(div_tree, items_tree, view.tl, view.zoom);
+        // Make sure we have the aligned panel if (and only if) necessary.
+        if (view.shape === "circular" || Object.keys(items).length === 1) {
+            div_aligned.style.display = "none";  // hide aligned panel
+        }
+        else {
+            div_aligned.style.display = "flex";  // show aligned panel
+            replace_svg(div_aligned);  // so we swap the main svg (faster to draw)
+        }
 
-        // Add aligned panel items.
-        draw_aligned(items_aligned, xmax);
+
+        let xmax = 0;
+        for (const panel of Object.keys(items).sort()) {
+            if (panel == 0)  // draw all received items for tree in div_tree
+                draw(div_tree, items[panel], view.tl, view.zoom);
+            else  // aligned panel items
+                draw_aligned(items[panel].map(item => translate(item, xmax)));
+
+            if (view.shape === "circular" || panel > 0)
+                xmax += xmaxs[panel];
+        }
 
         // Update variable that shows the number of visible nodes in the menu.
         view.nnodes_visible = div_tree.getElementsByClassName("nodebox").length;
@@ -148,19 +162,19 @@ function build_draw_query_string() {
 }
 
 
-// Return an object with keys the panel numbers (0, 1, ...), and
-// values a list of graphics to draw on them.
+// Return two objects whose keys are panel numbers (0, 1, ...) and their
+// values are a list of graphics to draw on them, and their maximum x value.
 function get_items_per_panel(commands) {
     const items = {};
-    let xmax = 0;
+    let xmaxs = {};
 
     let current_panel = 0;
     commands.forEach(c => {
         if (c[0] === "panel") {  // we got a "change panel" command
             current_panel = c[1];
         }
-        else if (c[0] === "xmax") {  // we got a "set xmax" command
-            xmax = c[1];
+        else if (c[0] === "xmaxs") {  // we got a "set xmaxs" command
+            xmaxs = c[1];
         }
         else {  // we got a normal drawing command
             if (!(current_panel in items))
@@ -169,33 +183,21 @@ function get_items_per_panel(commands) {
         }
     });
 
-    return [items, xmax];
+    return [items, xmaxs];
 }
 
 
 // Draw items in the aligned position.
-function draw_aligned(items, xmax) {
+function draw_aligned(items) {
     if (view.shape === "rectangular") {
-        if (items) {
-            div_aligned.style.display = "flex";  // show aligned panel
-            const tl = {x: view.aligned.origin, y: view.tl.y};  // relative "top-left" point
-            const zoom = {x: view.zoom.x * view.aligned.zoom, y: view.zoom.y};
-            draw(div_aligned, items, tl, zoom);
-        }
-        else {  // no items in aligned panel
-            div_aligned.style.display = "none";  // hide aligned panel
-        }
+        const tl = {x: view.aligned.origin, y: view.tl.y};  // relative "top-left" point
+        const zoom = {x: view.zoom.x * view.aligned.zoom, y: view.zoom.y};
+        const replace = false;
+        draw(div_aligned, items, tl, zoom, replace);
     }
     else if (view.shape === "circular") {
-        div_aligned.style.display = "none";  // hide aligned panel (may be open)
-
-        if (items) {
-            // Translate  r -> r + rmax
-            const translated_items = items.map(item => translate(item, xmax));
-
-            const replace = false;
-            draw(div_tree, translated_items, view.tl, view.zoom, replace);
-        }
+        const replace = false;
+        draw(div_tree, items, view.tl, view.zoom, replace);
     }
 }
 

@@ -88,8 +88,8 @@ def draw_seq(box, seq, seqtype='aa', draw_text=True, fs_max=None, style='',
 def set_panel(panel=0):  # panel that we will use to draw from now on
     return ['panel', panel]
 
-def set_xmax(xmax):  # maximum reached x (so we can align to it)
-    return ['xmax', xmax]
+def set_xmaxs(xmaxs):  # maximum reached x per panel (so we can align well)
+    return ['xmaxs', xmaxs]
 
 
 # Related functions.
