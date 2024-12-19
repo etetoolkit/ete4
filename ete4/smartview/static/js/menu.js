@@ -15,7 +15,7 @@ function init_menus(trees) {
     const pane = new Pane({
         title: "Control panel",
         container: div_menu,
-        expanded: true,
+        expanded: false,
     });
     menus.pane = pane;
 
