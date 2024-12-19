@@ -636,7 +636,6 @@ function share_view() {
 function show_help() {
     const help_text = `
 <table style="margin: 0 auto">
-<thead><tr><th>General Instructions</th></tr></thead>
 <tbody style="text-align: left">
 <tr><td><br>
 Click and drag with the left mouse button to move around the tree.
@@ -646,13 +645,10 @@ Use the mouse wheel to zoom in and out. Press <kbd>Ctrl</kbd> or <kbd>Alt</kbd>
 while using the wheel to zoom differently.
 </td></tr>
 <tr><td><br>
-Click on the minimap to go to a different area or drag the current view.
-</td></tr>
-<tr><td><br>
 Right-click on a node to show options to interact with it.
 </td></tr>
 <tr><td><br>
-Use the options in the menu at the top right to change the visualization.
+Use the control panel at the top left to see all the extra options.
 </td></tr>
 </tbody>
 </table>
@@ -681,7 +677,7 @@ Use the options in the menu at the top right to change the visualization.
     Swal.fire({
         title: "Tree Explorer",
         html: help_text,
-        icon: "info",
+        width: "70%",
     });
 }
 
