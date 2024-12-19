@@ -80,6 +80,7 @@
     display: none;
     position: absolute;
     right: 0px;
+    width: 30%;
     height: 100%;
     touch-action: none;
 }

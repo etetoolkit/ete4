@@ -49,7 +49,7 @@ const view = {
     content_height_min: 4,  // for less pixels, node contents won't be drawn
     rmin: 0,
     angle: {min: -180, max: 180},
-    align_bar: 80,  // % of the screen width where the aligned panel starts
+    align_bar: 70,  // % of the screen width where the aligned panel starts
     collapsed_ids: {},
 
     // layouts
