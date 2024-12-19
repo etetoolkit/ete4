@@ -240,6 +240,7 @@ kbd {  /* from https://developer.mozilla.org/en-US/docs/Web/HTML/Element/kbd */
     --tp-label-foreground-color: hsla(230, 10%, 30%, 0.7);
     --tp-monitor-background-color: hsla(230, 15%, 30%, 0.1);
     --tp-monitor-foreground-color: hsla(230, 10%, 30%, 0.5);
+    user-select: none;  /* to avoid flickering using the aligned grabber */
 }
 
 .tp-rotv {
