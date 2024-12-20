@@ -124,19 +124,22 @@ function zoom_angular(point, qz) {
 
 
 
-// Zoom adaptatively so that the given box tends to occupy the full screen.
+// Zoom adaptatively so the given box tends to occupy a fraction of the screen.
 function zoom_towards_box(box, point, deltaY, do_zoom) {
-    if (deltaY < 0) {  // zoom in
-        const [dx, dy] = [box[2], box[3]];
-        const lim = {x: 0.8 * div_tree.offsetWidth  / (dx * view.zoom.x),
-                     y: 0.8 * div_tree.offsetHeight / (dy * view.zoom.y)};
-        const qz = {x: Math.min(1.5, sigmoid(-deltaY/1000, lim.x)),
-                    y: Math.min(1.5, sigmoid(-deltaY/1000, lim.y))};
-        zoom_xy(point, qz, do_zoom);
-    }
-    else {  // zoom out
-        zoom_around(point, deltaY, do_zoom);
-    }
+    const [dx, dy] = [box[2], box[3]];
+    const dist = deltaY / 1000;  // distance moved, in convenient units
+
+    // Screen size in terms of dx, dy (how many times bigger it is).
+    const ssx = div_tree.offsetWidth  / (dx * view.zoom.x),
+          ssy = div_tree.offsetHeight / (dy * view.zoom.y);
+
+    const qz = (dist < 0) ?  // zoom in : zoom out
+          {x: Math.min(1.5,             sigmoid(-dist, 0.80 * ssx)),    // 80%
+           y: Math.min(1.5,             sigmoid(-dist, 0.80 * ssy))} :  // 80%
+          {x: Math.max(0.7, Math.min(1, sigmoid( dist, 0.10 * ssx))),   // 10%
+           y: Math.max(0.7, Math.min(1, sigmoid( dist, 0.01 * ssy)))};  //  1%
+
+    zoom_xy(point, qz, do_zoom);
 }
 
 function sigmoid(x, lim) {  // helper function: s(0) = 1, and s(inf) = lim
