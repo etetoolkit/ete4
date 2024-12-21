@@ -8,75 +8,84 @@ export { search, remove_searches, get_search_class, colorize_searches };
 
 
 // Search nodes in the server and redraw the tree (with the results too).
-async function search() {
-    let search_text;
+async function search(query="", color=undefined, redraw=true) {
+    let message = undefined;  // to show the previous error
 
-    const result = await Swal.fire({
-        input: "text",
-        position: "bottom-start",
-        inputPlaceholder: "Enter name (or ? for help)",
-        showConfirmButton: false,
-        preConfirm: async text => {
-            if (!text)
-                return false;  // prevent popup from closing
+    while (true) {  // keep on querying until we exit or have a good query
+        const result = await get_query(message, query);
 
-            search_text = text;  // to be used when checking the result later on
+        if (!result.isConfirmed)  // we pressed ESC or clicked outside
+            return false;  // we are done, and didn't add anything
 
-            try {
-                if (text.trim() === "?") {
-                    show_search_help();
-                    return;
-                }
+        query = result.value;  // update the text of our last query
 
-                if (text in view.searches)
-                    throw new Error("Search already exists.");
-
-                const qs = `text=${encodeURIComponent(text)}`;
-                return await api(`/trees/${get_tid()}/search?${qs}`);
-            }
-            catch (exception) {
-                Swal.fire({
-                    position: "bottom-start",
-                    showConfirmButton: false,
-                    html: exception,
-                    icon: "error",
-                });
-            }
-        },
-    });
-
-    if (result.isConfirmed) {
-        const res = result.value;  // shortcut
-
-        if (res.message === "ok") {
-            const colors = ["#FF0", "#F0F", "#0FF", "#F00", "#0F0", "#00F"];
-            const nsearches = Object.keys(view.searches).length;
-
-            view.searches[search_text] = {
-                results: {n: res.nresults,
-                          opacity: 0.4,
-                          color: colors[nsearches % colors.length]},
-                parents: {n: res.nparents,
-                          color: "#000",
-                          width: 5},
-                order: menus.searches.children.length,
-            };
-
-            add_search_to_menu(search_text);
-
-            update_order_lists();  // so this new position appears everywhere
-
-            draw_tree();
+        if (query === "?") {
+            await show_search_help();
+            continue;
         }
-        else {
-            Swal.fire({
-                position: "bottom-start",
-                showConfirmButton: false,
-                text: res.message,
-                icon: "error",
-            });
+
+        try {
+            if (query in view.searches)
+                throw new Error("Search already exists.");
+
+            const qs = `text=${encodeURIComponent(query)}`;
+            const response = await api(`/trees/${get_tid()}/search?${qs}`);
+
+            if (response.message !== "ok")
+                throw new Error(response.message);
+
+            add_search(query, response.nresults, response.nparents, color);
+
+            if (redraw)
+                draw_tree();
+
+            return true;  // we are done, and we added a new search
+        }
+        catch (exception) {
+            message = exception.message;  // and we will query again
         }
     }
+}
+
+
+// Show dialog asking for a (non-empty) query, with optional message and query.
+async function get_query(message, query_last) {
+    return await Swal.fire({
+        html: message,
+        inputValue: query_last,
+        input: "text",
+        position: "bottom-start",
+        inputPlaceholder: "Enter query (or ? for help)",
+        showConfirmButton: false,
+        preConfirm: text => {
+            const query = text.trim();
+            if (!query)
+                return false;  // prevent popup from closing
+            else
+                return query;
+        },
+    });
+}
+
+
+// Update view.searches and the gui menus.
+function add_search(query, nresults, nparents, color) {
+    const colors = ["#FF0", "#F0F", "#0FF", "#F00", "#0F0", "#00F"];
+    const nsearches = Object.keys(view.searches).length;
+
+    view.searches[query] = {
+        results: {n: nresults,
+                  opacity: 0.4,
+                  color: color ? color : colors[nsearches % colors.length]},
+        parents: {n: nparents,
+                  color: "#000",
+                  width: 5},
+        order: menus.searches.children.length,
+    };
+
+    add_search_to_menu(query);
+
+    update_order_lists();  // so this new position appears everywhere
 }
 
 
@@ -99,19 +108,19 @@ function update_order_list(folder, i, order_options) {
 
     folder.children[index_of_list].dispose();  // delete the drowpdown list
 
-    const search = view.searches[folder.title];
+    const sdata = view.searches[folder.title];
 
-    search.order = `${i}`;
-    const old_order = search.order;  // to switch the other to this when changed
+    sdata.order = `${i}`;
+    const old_order = sdata.order;  // to switch the other to this when changed
 
-    folder.addBinding(search, "order", {
+    folder.addBinding(sdata, "order", {
         index: index_of_list,  // we put the list in the same position it was
         label: "sort order",
         options: order_options,
       }).on("change", () => {
           // Switch search that was in that order before to our old order.
           Object.values(view.searches)
-              .filter(s => s.order === search.order && s !== search)
+              .filter(s => s.order === sdata.order && s !== sdata)
               .map(s => s.order = old_order);
 
           setTimeout(reconstruct_search_folders);  // don't delete us yet!
@@ -147,9 +156,9 @@ function get_search_class(text, type="results") {
 function add_search_to_menu(text) {
     const folder = menus.searches.addFolder({title: text, expanded: false});
 
-    const search = view.searches[text];
+    const sdata = view.searches[text];  // search object with all relevant data
 
-    search.remove = function() {
+    sdata.remove = function() {
         delete view.searches[text];
         folder.dispose();
         update_order_lists();
@@ -158,37 +167,45 @@ function add_search_to_menu(text) {
 
     const folder_style = folder.controller.view.buttonElement.style;
 
-    folder_style.background = search.results.color;
+    folder_style.background = sdata.results.color;
 
     const on_change = () => {
-        folder_style.background = search.results.color;
+        folder_style.background = sdata.results.color;
         colorize_search(text);
     }
 
+    sdata.edit = async function() {
+        const added = await search(text, sdata.results.color, false);
+        // TODO: Make it appear at the same position as the replaced search?
+        sdata.remove();
+    }
+
+    folder.addButton({title: "edit"}).on("click", sdata.edit);
+
     const folder_results = folder.addFolder(
-        {title: `results (${search.results.n})`, expanded: false});
-    folder_results.addBinding(search.results, "opacity", {min: 0, max: 1, step: 0.01})
+        {title: `results (${sdata.results.n})`, expanded: false});
+    folder_results.addBinding(sdata.results, "opacity", {min: 0, max: 1, step: 0.01})
         .on("change", on_change);
-    folder_results.addBinding(search.results, "color")
+    folder_results.addBinding(sdata.results, "color")
         .on("change", on_change);
 
     const folder_parents = folder.addFolder(
-        {title: `parents (${search.parents.n})`, expanded: false});
-    folder_parents.addBinding(search.parents, "color")
+        {title: `parents (${sdata.parents.n})`, expanded: false});
+    folder_parents.addBinding(sdata.parents, "color")
         .on("change", on_change);
-    folder_parents.addBinding(search.parents, "width", {min: 0.1, max: 20})
+    folder_parents.addBinding(sdata.parents, "width", {min: 0.1, max: 20})
         .on("change", on_change);
 
-    folder.addBinding(search, "order", {label: "sort order", options: {}});
+    folder.addBinding(sdata, "order", {label: "sort order", options: {}});
 
-    folder.addButton({title: "remove"}).on("click", search.remove);
+    folder.addButton({title: "remove"}).on("click", sdata.remove);
 }
 
 
 // Apply colors (and opacity) to results and parents of a search made
 // on the given text.
 function colorize_search(text) {
-    const search = view.searches[text];
+    const sdata = view.searches[text];
 
     // Select (by their class) elements that are the results and
     // parents of the search, and apply the style (color and
@@ -196,14 +213,14 @@ function colorize_search(text) {
 
     const cresults = get_search_class(text, "results");
     Array.from(div_tree.getElementsByClassName(cresults)).forEach(e => {
-        e.style.opacity = search.results.opacity;
-        e.style.fill = search.results.color;
+        e.style.opacity = sdata.results.opacity;
+        e.style.fill = sdata.results.color;
     });
 
     const cparents = get_search_class(text, "parents");
     Array.from(div_tree.getElementsByClassName(cparents)).forEach(e => {
-        e.style.stroke = search.parents.color;
-        e.style.strokeWidth = search.parents.width;
+        e.style.stroke = sdata.parents.color;
+        e.style.strokeWidth = sdata.parents.width;
     });
 }
 
@@ -224,7 +241,7 @@ function remove_searches() {
 }
 
 
-function show_search_help() {
+async function show_search_help() {
     const help_text = `
 <div style="text-align: left">
 
@@ -344,7 +361,7 @@ nodes named "AB" with two children, one that is a leaf and another that has a le
 
 </div>
 `;
-    Swal.fire({
+    await Swal.fire({
         title: "Searching nodes",
         html: help_text,
         width: "80%",
