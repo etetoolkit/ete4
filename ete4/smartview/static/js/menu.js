@@ -106,7 +106,7 @@ function add_tab_selections(tab) {
 }
 
 function add_folder_searches(menu) {
-    const folder_searches = folder(menu, "searches");
+    const folder_searches = folder(menu, "searches", true);
     menus.searches = folder_searches;
 
     folder_searches.addButton({title: "new search"}).on("click", view.search);
