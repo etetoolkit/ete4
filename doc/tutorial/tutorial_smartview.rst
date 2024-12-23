@@ -8,187 +8,175 @@ Tree drawing and exploration (web)
 Overview
 --------
 
-Before exploring the novel features and enhancements introduced in ETE
-v4, it is essential to understand the foundational elements of ETE’s
-programmable tree drawing engine. Inherited from ETE v3, the following
-fundamental components form a highly adaptable backbone, enabling the
-various customization and structuring of visualizations:
+We can represent and interact with a tree in a flexible way by using
+the *explorer* module.
 
-a) TreeStyle, a class can be used to create a custom set of options
-   that control the general aspect of the tree image. For example,
-   users can modify the scale used to render tree branches or choose
-   between circular or rectangular tree drawing, and customize general
-   settings for tree visualizing such as title, footer, legend, etc.
+Let's create a simple tree with 100 leaves and randomly populated::
 
-b) NodeStyle, defines the specific aspect of each node (size, color,
-   background, line type, etc.). A node style can be defined
-   statically and attached to several nodes, or customized the
-   conditions so different NodeStyle applied for nodes in different
-   conditions. NodeStyle can even dynamically change on the fly to
-   adapt ETE4’s zooming algorithm, which can be set through a
-   TreeLayout.
+  from random import random
+  from ete4 import Tree
+  t = Tree()
+  t.populate(100, dist_fn=random, support_fn=random)
 
-c) Face, as called as node faces, are small pieces of extra graphical
-   information that can be linked to nodes (text labels, images,
-   graphs, etc.). Several types of node faces are provided by the
-   previous ETE3 module, ranging from simple text (TextFace) and
-   geometric shapes (CircleFace), to molecular sequence
-   representations (SequenceFace), etc. These faces are upgraded in
-   ETE4 to adapt the large tree drawing engine.
+We can start exploring it with::
 
-d) TreeLayout, is a class which defines a foundational layout for
-   trees to set specific styles for both the entire tree and
-   individual nodes, acting as a pre-drawing hooking framework. When a
-   tree is about to be drawn, the above elements such as TreeStyle,
-   NodeStyle, Face of nodes can be then set up and modified on the fly
-   and returned to the drawer engine. Hence TreeLayout class can be
-   understood as a suite of rules tree’s basic setting and how
-   different nodes should be drawn.
+  t.explore()
 
-Scheme of fundamental components in ETE4's programmable tree drawing engine
+At that moment the web browser will open, and we can use the graphical
+user interface (GUI) to interact with our tree using the default
+visualization.
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/fundamental_ete4.jpg?raw=true
-   :alt: alternative text
-   :align: center
+There are already many things that can be done to change the
+visualization by using the menus in the GUI and changing styles, doing
+searches, creating labels and more.
+
+..
+   it would be nice to have an image of the gui here
+
+But we can also control programatically how to do the visualization,
+and in a more flexible way. We do that by using *layouts*.
+
+With a layout we can for example set some style for the lines of the
+tree, the dots of the nodes, and many other tree-related styles. Or
+change the style of only some nodes that we are interested in. We may
+want to add textual or graphical information to certain nodes too.
+
+The concepts that ETE uses to describe the visualization are:
+
+- **Styles** represented as dictionaries. For example ``{'shape':
+  'circular', 'hz-line': {'stroke-width': 2}}``.
+- Pictorial or textual *information pieces* represented by the class
+  :class:`Face <ete4.smartview.faces.Face>`, with a variety of subclasses for
+  different kinds of representations (``TextFace``, ``ImageFace``,
+  ...). Faces know how to return graphic elements showing the
+  information corresponding to a node, or to a group nodes collapsed
+  together.
+- A way to describe where to place faces, by means of the class
+  :class:`Decoration <ete4.smartview.layout.Decoration>`. It mainly allows to
+  specify the ``position`` where to draw the information relative to
+  its node (on ``'top'`` of its branch, at its ``'right'``,
+  ``'aligned'``, etc.), and in which column to put it (to stack it
+  nicely with other faces from the same layout or a different one).
+- Full descriptions of how to represent a tree, using the
+  class :class:`Layout <ete4.smartview.layout.Layout>`. It contains a
+  ``draw_node()`` function that produces the decorations and styles
+  that we want for a given node, and a ``draw_tree()`` function that
+  does the same for the full tree. They compose: using several layouts
+  will add extra graphic representations, and/or overwrite some styles
+  from previous layouts.
 
 
-Explore interactive visualization of trees
-------------------------------------------
+Launching the explorer
+----------------------
 
-ETE's tree drawing engine is fully integrated with a built-in
-graphical user interface (GUI) which allows to explore and manipulate
-node's properties and tree topology. To start the visualization of a
-node (tree or subtree), you can simply call the :func:`explore
-<ete4.Tree.explore>` method.
+To start the visualization of a tree, we can use the :func:`explore
+<ete4.Tree.explore>` method as shown above::
 
-One of the advantages of this visualization is that you can use it to
-interrupt a given program/analysis, explore the tree, manipulate it,
-and continue with the execution. Note that **changes made using the
-GUI will be kept after quiting the GUI**. This feature is specially
-useful during python sessions, and it can be utilized in various environments
-by modifying argument *keep_server*, including standalone scripts and interactive
-sessions such as IPython or Jupyter Notebooks. Below are examples demonstrating
-the method's usage in each context.
+  t.explore(...)
+
+If we run it from the Python console, in addition to opening a web
+browser session, the call returns immediately and we can continue
+working with the tree in the console.
+
+The explorer allows to visualize and also manipulate the tree. You can
+in parallel change the tree from the GUI and from the console, and the
+changes will be reflected everywhere.
+
+This is very useful, but sometimes we want a different behavior. Let's
+see some examples of typical uses.
 
 
 Standalone scripts
 ~~~~~~~~~~~~~~~~~~
-When running a standalone script, *keep_server* should be set as *True* to keep
-the server running.
 
-::
+If we run a standalone script, after the call to :func:`explore
+<ete4.Tree.explore>` the program will continue and probably end,
+finishing the interactive session at the same time.
 
-  from ete4 import Tree
-  t = Tree('((a,b),c);')
+We can set the argument ``keep_server=True`` to keep the server running::
+
   t.explore(keep_server=True)
 
-Source code can be found in in ETE4 here: `explore_standalone.py
-example
-<https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/explore_standalone.py>`_.
+The program will run until we kill the process (with Ctrl+C for
+example).
 
+A better way is to simply wait for some input before continuing, for
+example::
 
-Interactive sessions
-~~~~~~~~~~~~~~~~~~~~
-When running in interactive sessions such as IPython or Jupyter Notebooks,
-leave *keep_server* as default *False*.
+  t.explore()
+  print('Press enter to stop the server and finish.')
+  input()
 
-::
-
-  Python 3.9.7 (default, Sep 16 2021, 13:09:58)
-  Type 'copyright', 'credits' or 'license' for more information
-  IPython 7.29.0 -- An enhanced Interactive Python. Type '?' for help.
-
-  In [1]: from ete4 import Tree
-
-  In [2]: t = Tree('((a,b),c);')
-
-  In [3]: t.explore(keep_server=False)
-  Added tree tree-1 with id 0.
 
 Verbose mode
 ~~~~~~~~~~~~
-When running in verbose mode by setting *quiet* argument, every actions
-will be printed in the terminal.
 
-::
+We can set ``verbose=True`` to see all the actions made by the ETE
+backend, which can be useful for debugging and for getting an insight
+on how the explorer works::
 
-  Python 3.9.7 (default, Sep 16 2021, 13:09:58)
-  Type 'copyright', 'credits' or 'license' for more information
-  IPython 7.29.0 -- An enhanced Interactive Python. Type '?' for help.
+  >>> t.explore(verbose=True)
+  Explorer now available at http://127.0.0.1:5000
+  127.0.0.1 - - [18/Dec/2024 10:41:39] "GET / HTTP/1.1" 303 0
+  127.0.0.1 - - [18/Dec/2024 10:41:39] "GET /static/gui.html?tree=tree-1 HTTP/1.1" 200 1476
+  127.0.0.1 - - [18/Dec/2024 10:41:39] "GET /static/gui.css HTTP/1.1" 200 5255
+  [...]
+  127.0.0.1 - - [18/Dec/2024 10:41:39] "GET /trees HTTP/1.1" 200 36
+  127.0.0.1 - - [18/Dec/2024 10:41:39] "GET /static/icon.png HTTP/1.1" 200 686
+  127.0.0.1 - - [18/Dec/2024 10:41:39] "GET /trees/tree-1/layouts HTTP/1.1" 200 27
+  [...]
+  127.0.0.1 - - [18/Dec/2024 10:41:39] "GET /trees/tree-1/draw?shape=rectangular&node_height_min=30&content_height_min=4&zx=375.9&zy=178.79999999999998&x=-0.33333333333333337&y=-0.16666666666666669&w=3.3333333333333335&h=3.3333333333333335&collapsed_shape=skeleton&collapsed_ids=%5B%5D&layouts=%5B%22basic%22%5D&labels=%5B%5D HTTP/1.1" 200 1331
 
-  In [1]: from ete4 import Tree
 
-  In [2]: t = Tree('((a,b),c);')
-
-  In [3]: t.explore(keep_server=False, quiet=False)
-  Added tree tree-1 with id 0.
-  Bottle v0.12.25 server starting up (using WSGIRefServer())...
-
-  Listening on http://localhost:5000/
-  Hit Ctrl-C to quit.
-
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET / HTTP/1.1" 303 0
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees HTTP/1.1" 200 29
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /layouts HTTP/1.1" 200 106
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/size HTTP/1.1" 200 29
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/collapse_size HTTP/1.1" 200 2
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /drawers/RectFaces/0 HTTP/1.1" 200 30
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/ultrametric HTTP/1.1" 200 5
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/nodecount HTTP/1.1" 200 27
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /layouts/0 HTTP/1.1" 200 106
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/searches HTTP/1.1" 200 16
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/all_selections HTTP/1.1" 200 16
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/all_active HTTP/1.1" 200 27
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/draw?drawer=RectFaces&min_size=10&zx=555.9&zy=284.40000000000003&za=1&x=-0.33333333333333337&y=-0.16666666666666666&w=3.3333333333333335&h=3.333333333333333&collapsed_ids=%5B%5D&layouts=%5B%22default%3ABranch+length%22%2C%22default%3ABranch+support%22%2C%22default%3ALeaf+name%22%5D&ultrametric=0 HTTP/1.1" 200 1765
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /drawers/RectFaces/0 HTTP/1.1" 200 30
-  127.0.0.1 - - [02/Nov/2023 11:19:15] "GET /trees/0/draw?drawer=RectFaces&min_size=10&zx=555.9&zy=284.40000000000003&za=1&x=-0.33333333333333337&y=-0.16666666666666666&w=3.3333333333333335&h=3.333333333333333&collapsed_ids=%5B%5D&layouts=%5B%22default%3ABranch+length%22%2C%22default%3ABranch+support%22%2C%22default%3ALeaf+name%22%5D&ultrametric=0&panel=-1 HTTP/1.1" 200 2
-
-Show leaf node names, branch length and branch support
+Basic layout (leaf names, branch lengths and supports)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Users can choose to show leaf node names, branch length and branch support in the
-tree explore method.
 
-Example::
+When we call ``explore()`` without any arguments, a layout is
+automatically added to show the names of the leaf nodes, the branch
+lengths and their support (the ``BASIC_LAYOUT``).
 
-   from ete4 import Tree
-   t = Tree()
-   t.populate(10, random_branches=True)
-   t.explore(show_leaf_name=True, show_branch_length=True, \
-   show_branch_support=True, keep_server=True)
+We can remove it from the GUI by clicking on it in the menu *layouts*,
+or programatically by specifying an empty list of layouts::
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/explore_show.png?raw=true
-   :alt: alternative text
-   :align: center
+  t.explore(layouts=[])
 
-Source code can be found in in ETE4 here: `explore_show.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/explore_show.py>`_.
+So what happens when we are not passing that argument? The explorer
+interprets it as::
 
-Showing node's properties in pop up
+  from ete4.smartview import BASIC_LAYOUT
+  t.explore(layouts=[BASIC_LAYOUT])
+
+.. add image
+
+
+Showing node's properties in a popup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Users can choose to show node's properties in pop up when mouse left-click on the node.
-By setting arguments in *include_props* and *exclude_props* `explore()` method, users can choose to show node's
-properties in pop up when mouse left-click on the node, uses can decide what
-properties to show in interface.
 
-Example using *include_props*::
+When we hover with the mouse over a node, we can see its properties in
+a popup. By default, only the name, the length, and the support appear
+(if they are defined).
 
-   from ete4 import Tree
-   t = Tree()
-   t.populate(10, random_branches=True)
-   # includes node's properties "name", "dist" and "support" in pop up
-   t.explore(include_props=("name", "dist", "support"), keep_server=True)
+By setting the arguments ``show_popup_props`` and ``hide_popup_props`` we
+can choose which properties to show. This way the backend only needs
+to send the relevant information when drawing the nodes, and we can
+visualize only what we want without being overwhelmed.
 
-Or *exclude_props*::
+For example, to show only the property ``dist``::
 
-  from ete4 import Tree
-   t = Tree()
-   t.populate(10, random_branches=True)
-   # not showing node's properties "dist" and "support" in pop up
-   t.explore(exclude_props=("dist", "support"), keep_server=True)
+  t.explore(show_popup_props=['dist'])
 
-Control Panel
+Or if we want to see all except some::
+
+  t.explore(show_popup_props=None, hide_popup_props=['dist', 'sequence'])
+
+
+Control panel
 ~~~~~~~~~~~~~
-After trigging explore() method on target tree, a local browser will be activated where users can visualize targer tree.
-When exploring the tree, a control panel will be shown in the left side of the tree panel.
+
+When exploring the tree, a control panel will be shown in the left
+side of the tree panel.
+
+.. TODO: change the image
 
 .. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/control_panel.png?raw=true
    :alt: alternative text
@@ -196,278 +184,295 @@ When exploring the tree, a control panel will be shown in the left side of the t
 
 It consists of the three major tabs:
 
-- **Layout**: overrall setting of the tree layout including tree representation, collapse level, available TreeLayouts, etc.
-- **Search & Selection**: to customize search and select nodes in the tree.
-- **Advanced**: to control the advanced options of the tree visualization setting.
+- **Main**: More common settings including layouts, collapsing level, etc.
+- **Selections**: For searches, manual collapse and tagging of nodes.
+- **Advanced**: With less common settings and operations like sorting, changing styles, etc.
 
-1) Layout Tab
+
+1) Main
+^^^^^^^
+
+This tab contains the general settings of the tree visualization. It
+includes among other things:
+
+- **tree**: Selector with current tree (can select other loaded trees).
+- **download**: Different ways to download the tree (as newick or as an image).
+- **upload**: Allows to upload new trees from their newick representation.
+- **shape**: Tree representation as ``rectangular`` or ``circular``.
+- **node height min**: Minimum height in pixels to expand a node (otherwise shown as collapsed).
+- **content height min**: Minimum height in pixels to show content (content with less height will not show).
+- **layouts**: Lists all available layouts and allows to switch them on and off.
+- **extra labels**: Allows to add labels, additional pieces of information to attach to nodes.
+- **smart zoom**: Zooms making the current node under the cursor grow towards the window.
+
+
+2) Selections
 ^^^^^^^^^^^^^
-Overrall
-""""""""
-Layout tab contains most of the general settings of the tree visualization. It includes:
 
-- **tree**, name of the tree.
+This tab contains the searches and selected nodes.
 
-- **drawer**, drawer of the tree representation, *Rectangular* or *Circular*.
+We can make a search with clicking *new search* button (also the "/"
+shortcut), then input the query in the search box. There are different
+ways to search for nodes.
 
-- **collapse**, the threshold of the vertical size in pixel, when the node's vertical size is smaller than the threshold, the node will be collapsed, default value is *10*.
-
-- **ultrametric**, whether to draw ultrametric tree with edge lengths where all leaves are equidistant from the root, default *False*.
-
-- **Layouts**, all available TreeLayouts in the tree, users can choose to activate or deactivate the TreeLayouts.
-
-- **show minimap**, whether to show minimap in the tree interface(bottom-right), default *False*.
-
-- **show tree scale legend**, whether to show tree scale legend in the tree interface(bottom-left), default *True*.
-
-- **tooltip on hover**, whether to show tooltip when mouse hover on the node. If *False*, tooltip will be shown on left-click. Default *False*.
-
-- **smart zoom**, If set to True, SmartView will adjust the horizontal and vertical zoom so that the current node under the cursor tends to occupy the full area. The default setting is **True**.
-
-- **zoom in aligned panel**, If set to True, users can zoom in the aligned panel for aligned node faces. The default setting is **False**.
-
-- **select text**, whether is able to select text with cursor in the tree interface, default *False*.
-
-- **Download**, users can download the tree information in **newick**, **svg** or **pdf** file in the tree interface by clicking the download tab from Control Panel.
-
-- **Help**, help page for SmartView, including shortcuts.
-
-Download
-""""""""
-Users can download the tree information in **newick**, **svg** or **pdf** file in the tree interface by clicking the download tab from Control Panel.
-
-
-2) Search & Selection Tab
-^^^^^^^^^^^^^^^^^^^^^^^^^
-Search & Selection tab contains the search and selection functions of the tree visualization.
-Users can start query with clicking *new search* button, then input the query in the search box.
-Each query will be saved in the search history, users can choose to modtify the visualizing setting for matching nodes or clades.
 
 Simple search
 """""""""""""
-Put a text in the search box to find all the nodes whose name matches it.
-The search will be case-insensitive if the text is all in lower case, and case-sensitive otherwise.
+
+We can put a text in the search box to find all the nodes whose name
+matches it. The search will be case-insensitive if the text is all in
+lower case, and case-sensitive otherwise.
 
 Regular expression search
-""""""""""""""""""""""""""
-To search for names mathing a given regular expression, you can prefix your text with the command **/r** (the regexp command) and follow it with the regular expression.
+"""""""""""""""""""""""""
+
+To search for names mathing a given regular expression, we can prefix
+the text with the command ``/r`` (the *regexp command*) and follow it
+with the regular expression.
 
 Expression search
 """""""""""""""""
-When prefixing your text with /e (the eval command), you can use a quite general Python expression to search for nodes. This is the most powerful search method available (and the most complex to use).
 
-The expression will be evaluated for every node, and will select those that satisfy it. In the expression you can use (among others) the following variables, with their straightforward interpretation: **node**, **parent**, **is_leaf**, **length** / **dist** / **d**, **properties** / **p**, **children** / **ch**, **size**, **dx**, **dy**, **regex**.
+When prefixing our text with ``/e`` (the *eval command*), we can use a
+quite general Python expression to search for nodes. This is the most
+powerful search method available (and the most complex to use).
+
+The expression will be evaluated for every node, and will select those
+that satisfy it. In the expression we can use (among others) the
+following variables, with their straightforward interpretation:
+``node``, ``parent``, ``is_leaf``, ``length`` / ``dist`` / ``d``, ``properties`` /
+``p``, ``children`` / ``ch``, ``size``, ``dx``, ``dy``, ``regex``.
 
 Topological search
 """"""""""""""""""
-Similar to the expression search, if you prefix your text with **/t** (the topological command), you can write a newick tree with quoted names in each node containing an eval command. This will select the nodes that satisfy the full subtree of expressions that you passed.
 
-Examples of searches and possible matches
-"""""""""""""""""""""""""""""""""""""""""
+Similar to the expression search, if we prefix the text with ``/t`` (the
+*topological command*), we can write a newick tree with quoted names
+in each node containing an eval command. This will select the nodes
+that satisfy the full subtree of expressions that you passed.
 
-::
+Examples
+""""""""
 
-  citrobacter		will match nodes named "Citrobacter werkmanii" and "Citrobacter youngae"
+Some examples of searches and possible matches:
 
-  UBA		will match "spx UBA2009" but not "Rokubacteriales"
++----------------------------------------+-------------------------------------------------------+
+| Query                                  | Example match                                         |
++========================================+=======================================================+
+| ``citrobacter``                        | will match nodes named "Citrobacter werkmanii" and    |
+|                                        | "Citrobacter youngae"                                 |
++----------------------------------------+-------------------------------------------------------+
+| ``UBA``                                | will match "spx UBA2009" but not "Rokubacteriales"    |
++----------------------------------------+-------------------------------------------------------+
+| ``/r sp\d\d``                          | will match any name that contains "sp" followed by    |
+|                                        | (at least) two digits, like "Escherichia sp002965065" |
+|                                        | and "Citrobacter sp005281345"                         |
++----------------------------------------+-------------------------------------------------------+
+| ``/e len(ch) > 2``                     | will match nodes with more than 2 children            |
++----------------------------------------+-------------------------------------------------------+
+| ``/e is_leaf and``                     | will match leaf nodes with property "species"         |
+| ``p['species'] == 'Homo'``             | equal to "Homo"                                       |
++----------------------------------------+-------------------------------------------------------+
+| ``/t ("is_leaf","d > 1")"name=='AB'"`` | will match nodes named "AB" that have                 |
+|                                        | two children, one that is a leaf and                  |
+|                                        | another that has a length > 1                         |
++----------------------------------------+-------------------------------------------------------+
 
-  /r sp\d\d		will match any name that contains "sp" followed by (at least) two digits, like "Escherichia sp002965065" and "Citrobacter sp005281345"
 
-  /e d > 1		will match nodes with a length > 1
+3) Advanced
+^^^^^^^^^^^
 
-  /e is_leaf and p['species'] == 'Homo'		will match leaf nodes with property "species" equal to "Homo"
+This tab contains functions to select subtrees, sort, change styles
+and more.
 
-  /t ("is_leaf","d > 1")"name=='AB'"		will match nodes named "AB" that have two children, one that is a leaf and another that has a length > 1
-
-
-3) Advanced Tab
-^^^^^^^^^^^^^^^
-For more advance set up for visualization.
+.. TODO: Add image.
 
 
-Node Panel
-~~~~~~~~~~
-Interactive tree explorer allows users to perform various editing options on specific node. Once right-click on target node, it trigger node panel for selecting editing options.
+Context menu
+~~~~~~~~~~~~
+
+We can right-click on a node to open a context menu with different
+options.
+
+.. TODO: update image
 
 .. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/nodepanel.png?raw=true
    :alt: alternative text
    :align: center
 
-The node editor panel provides access to node-specific actions, such as creating subtrees, collapsing, pruning, rooting and more.
+There are many node-specific actions such as renaming, collapsing,
+moving and more. And there are a few tree actions like reseting the
+view, sorting the tree, or converting it to dendogram or ultrametric.
 
 
-Customizing the aspect of trees
--------------------------------
+Customizing tree visualization
+------------------------------
 
-Visualization customization is performed through four main elements: *TreeStyle*, *NodeStyle*, *Face*, and *TreeLayout*.
+The main elements used to customize the visualization are *styles*,
+*faces*, *decorations*, and *layouts*.
 
-Tree Layout
-~~~~~~~~~~~
-As shown in scheme of fundamental components from the previous section, TreeLayout contains element of
-tree style, node style and faces. Therefore, TreeLayout is the most important element in ETE4's drawing engine
-in regards to visualize information other than pure tree topology. TreeLayout can be called from :class:`TreeLayout`
-from :class:`ete4.smartview:`. It contains the following arguments:
 
-- *name*: name of the TreeLayout object, obligatory field.
-- *ts*: a function to set tree style.
-- *ns*: a function to set node style.
-- *aligned_faces*: whether to draw faces in aligned position, default *False*.
-- *active*: whether to activate the TreeLayout, default *True*.
-- *legend*: whether to show legend(need to be defined in tree style function), default *False*.
+Layouts
+~~~~~~~
 
-Here we demonstrate the basic usage of TreeLayout::
+Layouts contain the ``draw_node()`` and ``draw_tree()`` functions, which
+create the styles and faces that we use to represent the tree. They
+are objects of the class :class:`Layout` from
+:class:`ete4.smartview:`. They contain:
+
+
+- ``name``: Identifies the layout, so it can be activated/deactivated in the GUI.
+- ``draw_tree()``: a function that sets style and faces for the full tree.
+- ``draw_node()``: a function that sets style and faces for the given nodes.
+- ``cache_size``: number of arguments cached when calling `draw_node` (defaults to all).
+- ``active``: whether to start with the layout active (defaults to True).
+
+Let's look at how to use it::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout
+  from ete4.smartview import Layout
 
   t = Tree()
-  t.populate(20, random_branches=True)
+  t.populate(20)
 
-  # define a TreeLayout
-  tree_layout = TreeLayout(name="MyTreeLayout")
+  layout = Layout(name='I am a layout doing nothing')
 
-  # add TreeLayout to layouts
-  layouts = []
-  layouts.append(tree_layout)
+  t.explore(layouts=[layout])
 
-  # explore tree
-  t.explore(keep_server=True, layouts=layouts)
+.. TODO: add image
 
 .. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/treelayout_1.jpg?raw=true
    :alt: alternative text
    :align: center
 
-As the red frame highlighted the TreeLayout name, which is defined as "MyTreeLayout" is shown
-and activated in tree panel.
 
-Source code can be found in in ETE4 here: `treelayout_1.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/treelayout_1.py>`_.
+Changing the tree style
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Tree Style
-~~~~~~~~~~
+The ``draw_tree`` field of a layout specifies the general aspects of the
+tree style. For example, we can modify the scale used to render tree
+branches or choose between circular or rectangular tree drawing, etc.
 
-a class can be used to create a custom set of options that control the general aspect of
-the tree image. For example, users can modify the scale used to render tree branches or
-choose between circular or rectangular tree drawing, and customize general settings for
-tree visualizing such as title, footer, legend, etc
+It can be a dictionary with the style settings, or a function that
+returns such a dictionary, or a list with dictionaries and faces (the
+style options will come from those dictionaries).
 
-A number of parameters can be controlled through custom tree style
-objects. Check the :class:`TreeStyle` documentation for a complete
-list of accepted values.
+A dictionary with the tree style can look like this::
 
-As we described in the previous section, to modify tree style, we could define a function
-and pass it to the TreeLayout class which defined as custom layout for futher explore.
+  my_tree_style = {
+     'shape': 'circular',  # or 'rectangular'
+     'radius': 5,  # in circular mode, minimum radius value
+     'angle-start': -pi/2,  # in circular mode, where to start
+     'angle-end': pi/2,  # alternatively we can give 'angle-span'
+     'node-height-min': 10,  # when to start collapsing nodes
+     'content-height-min': 5,  # when to start showing faces
+     'collapsed': {'shape': 'outline', 'fill-opacity': 0.8},
+     'show-popup-props': None,  # show all defined properties
+     'hide-popup-props': ['support'],  # except support
+     'is-leaf-fn': lambda node: node.level > 4,  # nodes treated as leaves
+     'box': {'fill': 'green', 'opacity': 0.1, 'stroke': 'blue'},
+     'dot': {'shape': 'hexagon', 'fill': 'red'},
+     'hz-line': {'stroke-width': 2},  # horizontal line to parent
+     'vt-line': {'stroke': '#ffff00'},  # vertical line to children
+  }
 
-In the following, we show some common cases to modify tree style.
+The last four (**box**, **dot**, **hz-line**, **vt-line**) define the
+general look for all the nodes, but they can be overriden too in an
+individual basis with the function ``draw_node`` as explained below.
 
-Customizing tree style
-^^^^^^^^^^^^^^^^^^^^^^
-::
+The :class:`Layout` documentation has a complete list of options.
 
-  from ete4 import Tree
-  from ete4.smartview import TreeLayout
-
-  t.populate(20, random_branches=True)
-
-  def modify_tree_style(tree_style):
-      tree_style.collapse_size = 70
-
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout", ts=modify_tree_style)
-
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
-
-Source code can be found in in ETE4 here: `treestyle_1.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/treestyle_1.py>`_.
-
-Add legend
-^^^^^^^^^^
-::
-
-  from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
-
-  t = Tree('((a,b),c);')
-  def modify_tree_style(tree_style):
-
-      # add legend
-      tree_style.add_legend(
-          title="MyLegend",
-          variable="discrete",
-          colormap={"a":"red", "b":"blue", "c":"green"}
-          )
-
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout", ts=modify_tree_style)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
+Let's see some examples of how to modify tree style.
 
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/treestyle_legend.png?raw=true
-   :alt: alternative text
-   :align: center
+Example of simple change
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-
-Source code can be found in in ETE4 here: `treestyle_legend.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/treestyle_legend.py>`_.
-
-
-Node style
-~~~~~~~~~~
-
-Through the :class:`NodeStyle` class the aspect of each single node
-can be controlled, including its size, color, background and branch
-type.
-
-A node style can be defined statically and attached to several nodes.
-Here is the full list of attributtes that can be modified of node style, which is stored in `node.sm_style` :
-
-- *fgcolor*, foreground color, color thats appear in node, i.e. *red* or #ff0000 in hex code, default *#0030c1*.
-- *bgcolor*, background color, background color of node, default *transparent*.
-- *outline_line_color*, border color of the triangle when node is collapsed, default *#000000*.
-- *outline_line_width*, border width of the triangle when node is collapsed, default *0.5*.
-- *outline_color*, color of the triangle when node is collapsed, default *#e5e5e5*.
-- *outline_opacity*, opacity of the triangle when node is collapsed, default *0.3*.
-- *vt_line_color*, color of verticle line of node, default *#000000*.
-- *hz_line_color*, color of horizontal line of node, default *#000000*.
-- *hz_line_type*, type of horizontal line of node, default *0*, options are 0 solid, 1 dashed, 2 dotted.
-- *vt_line_type*, type pf verticle line of node, default *0*, options are 0 solid, 1 dashed, 2 dotted.
-- *hz_line_width*, size of horizontal line of node, default *0.5*.
-- *vt_line_width*, size of verticle line of node, default *0.5*.
-- *size*, diameter of node, default *0* piexl.
-- *shape*, shape of node, default *circle*, options are *circle*, *square*, *triangle*.
-- *draw_descendants*, whether to draw descendants of node or collapse node, default *True*.
-
-Using `set_style()` method can add the node style of a node.
-
-Simple tree in which the same style is applied to all nodes::
+A simple way to control the tree style is to pass a dictionary with
+the options we want to ``draw_tree``::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout, NodeStyle
+  from ete4.smartview import Layout
+
+  t = Tree()
+  t.populate(20)
+
+  layout = Layout(name='my layout',
+                  draw_tree={'node-height-min': 100})
+
+  t.explore(layouts=[layout])
+
+.. TODO: Add LegendFace, maybe, and have draw.js put Decoration(...,
+   position='top') or 'top-right', etc, put things in that place.
+   Then, add an example as in the old tutorial. Something like:
+     legend = LegendFace(title='My legend', variable='discrete',
+                         colormap={'a': 'red', 'b': 'blue', 'c': 'green'})
+     yield Decoration(legend, position='top-right')
+
+
+Changing the node style
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In the same way that we can control the general tree style with a
+dictionary of options returned by ``draw_tree``, we can also control the
+style of a given node with a dictionary of options returned by
+``draw_node``.
+
+It is possible to change the color, thickness of lines and many more
+style attributes of the following node elements:
+
+- **box**: The box (area) surrounding the node.
+- **dot**: The dot that represents the node itself.
+- **hz-line**: The horizontal line that connects it to its parent.
+- **vt-line**: The vertical line connecting it to its children.
+
+For all of them there are many options to change their style. The main
+options are **fill**, **stroke**, **stroke-width**, **opacity**, but
+there are also many more: **fill-opacity**, **stroke-opacity**,
+**stroke-linecap**, **stroke-linejoin**, **stroke-miterlimit**,
+**stroke-dashoffset**, **stroke-dasharray**, **paint-order**,
+**fill-rule**, etc. They are all based on [SVG
+attributes](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes).
+
+In addition to those, some elements have extra attributes:
+
+- **dot**
+  - **shape**: Figure (circle, square, ...) or its number of sides, representing the node.
+  - **radius**: The approximate radius in pixels of the dot.
+- **collapsed** (only used from the tree style)
+  - **shape**: Representation of collapsed nodes as "skeleton" or "outline"
+
+
+Example of simple change
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+A simple tree where we change the style for the leaves::
+
+  from ete4 import Tree
+  from ete4.smartview import Layout
 
   t = Tree('((A,B),C);')
 
-  # Draw nodes as small red square of diameter equal fo 10 pixels
-  triangle_node_style = NodeStyle()
-  triangle_node_style["shape"] = "triangle"
-  triangle_node_style["size"] = 10
-  triangle_node_style["fgcolor"] = "red"
+  # Nodes will be represented as small red triangles of 5 pixels radius.
+  style_dot = {'shape': 'triangle',
+               'radius': 10,
+               'fill': 'red'}
 
-  # brown dashed branch lines with width equal to 2 pixels
-  triangle_node_style["hz_line_type"] = 1
-  triangle_node_style["hz_line_width"] = 2
-  triangle_node_style["hz_line_color"] = "#964B00"
+  # Branch lines (horizontal lines) will be brown and dashed, and 10 pixels thick.
+  style_hz_line = {'stroke-dasharray': '5,5',
+                   'stroke-width': 10,
+                   'stroke': '#964B00'}
 
-  # Applies the same static style to all nodes in the tree. Note that,
-  def modify_node_style(node):
-      node.set_style(triangle_node_style)
-      return
+  def draw_node(node):
+      if node.is_leaf:
+          return {'dot': style_dot,
+                  'hz-line': style_hz_line}
 
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout", ns=modify_node_style)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
+  layout = Layout(name='My layout', draw_node=draw_node)
+  t.explore(layouts=[layout])
 
+
+.. TODO: Continue :)
 
 .. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/nodestyle_triangle.png?raw=true
    :alt: alternative text
