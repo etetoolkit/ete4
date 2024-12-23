@@ -1590,17 +1590,12 @@ cdef class Tree:
         nodes.
 
         .. warning::
-           Please note that the number of of possible binary trees grows
-           exponentially with the number and size of polytomies. Using this
-           function with large multifurcations is not feasible:
+           The number of possible binary trees grows exponentially
+           with the number and size of polytomies. Using this function
+           with large multifurcations is not recommended.
 
-           polytomy size: 3 number of binary trees: 3
-           polytomy size: 4 number of binary trees: 15
-           polytomy size: 5 number of binary trees: 105
-           polytomy size: 6 number of binary trees: 945
-           polytomy size: 7 number of binary trees: 10395
-           polytomy size: 8 number of binary trees: 135135
-           polytomy size: 9 number of binary trees: 2027025
+           polytomy size:          3,  4,   5,   6,     7,      8,       9
+           number of binary trees: 3, 15, 105, 945, 10395, 135135, 2027025
 
         See https://ajmonline.org/2010/darwin.php
         """
