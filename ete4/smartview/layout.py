@@ -129,7 +129,7 @@ DEFAULT_TREE_STYLE = {  # the default style of a tree
 #      'show-popup-props': None,  # all defined properties
 #      'hide-popup-props': ['support'],  # except support
 #      'is-leaf-fn': lambda node: node.level > 4,
-#      'box': {'fill': 'green', 'opacity': 0.1, 'stroke': 'blue', 'border': 2},
+#      'box': {'fill': 'green', 'opacity': 0.1, 'stroke': 'blue'},
 #      'dot': {'shape': 'hexagon', 'fill': 'red'},
 #      'hz-line': {'stroke-width': 2},
 #      'vt-line': {'stroke': '#ffff00'},
