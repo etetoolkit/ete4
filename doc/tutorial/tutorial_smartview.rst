@@ -26,12 +26,11 @@ At that moment the web browser will open, and we can use the graphical
 user interface (GUI) to interact with our tree using the default
 visualization.
 
+.. image:: ../images/gui.png
+
 There are already many things that can be done to change the
 visualization by using the menus in the GUI and changing styles, doing
 searches, creating labels and more.
-
-..
-   it would be nice to have an image of the gui here
 
 But we can also control programatically how to do the visualization,
 and in a more flexible way. We do that by using *layouts*.
@@ -45,25 +44,26 @@ The concepts that ETE uses to describe the visualization are:
 
 - **Styles** represented as dictionaries. For example ``{'shape':
   'circular', 'hz-line': {'stroke-width': 2}}``.
-- Pictorial or textual *information pieces* represented by the class
-  :class:`Face <ete4.smartview.faces.Face>`, with a variety of subclasses for
-  different kinds of representations (``TextFace``, ``ImageFace``,
-  ...). Faces know how to return graphic elements showing the
-  information corresponding to a node, or to a group nodes collapsed
-  together.
-- A way to describe where to place faces, by means of the class
-  :class:`Decoration <ete4.smartview.layout.Decoration>`. It mainly allows to
-  specify the ``position`` where to draw the information relative to
-  its node (on ``'top'`` of its branch, at its ``'right'``,
-  ``'aligned'``, etc.), and in which column to put it (to stack it
-  nicely with other faces from the same layout or a different one).
-- Full descriptions of how to represent a tree, using the
-  class :class:`Layout <ete4.smartview.layout.Layout>`. It contains a
-  ``draw_node()`` function that produces the decorations and styles
-  that we want for a given node, and a ``draw_tree()`` function that
-  does the same for the full tree. They compose: using several layouts
-  will add extra graphic representations, and/or overwrite some styles
-  from previous layouts.
+- **Faces**, pictorial or textual *information pieces* represented by
+  the class :class:`Face <faces.Face>`, with a variety of subclasses
+  for different kinds of representations (:class:`TextFace
+  <faces.TextFace>`, :class:`ImageFace <faces.ImageFace>`, ...). Faces
+  know how to return graphic elements showing the information
+  corresponding to a node, or to a group nodes collapsed together.
+- **Decorations**, a way to describe where to place faces, by means of
+  the class :class:`Decoration <layout.Decoration>`. It mainly allows
+  to specify the ``position`` where to draw the information relative
+  to its node (on *top* of its branch, at its *right*, *aligned*,
+  etc.), and in which column to put it (to stack it nicely with other
+  faces from the same layout or a different one).
+- **Layouts**, full descriptions of how to represent a tree, using the
+  class :class:`Layout <layout.Layout>`. It contains a
+  :func:`draw_node <layout.Layout.draw_node>` property, which is a
+  function that produces the decorations and styles that we want for a
+  given node, and a :func:`draw_tree <layout.Layout.draw_tree>`
+  property that does the same for the full tree. They compose: using
+  several layouts will add extra graphic representations, and/or
+  overwrite some styles from previous layouts.
 
 
 Launching the explorer
@@ -128,10 +128,10 @@ on how the explorer works::
   127.0.0.1 - - [18/Dec/2024 10:41:39] "GET /trees/tree-1/draw?shape=rectangular&node_height_min=30&content_height_min=4&zx=375.9&zy=178.79999999999998&x=-0.33333333333333337&y=-0.16666666666666669&w=3.3333333333333335&h=3.3333333333333335&collapsed_shape=skeleton&collapsed_ids=%5B%5D&layouts=%5B%22basic%22%5D&labels=%5B%5D HTTP/1.1" 200 1331
 
 
-Basic layout (leaf names, branch lengths and supports)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Basic layout (leaf names, branch length and support)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When we call ``explore()`` without any arguments, a layout is
+When we call ``t.explore()`` without any arguments, a layout is
 automatically added to show the names of the leaf nodes, the branch
 lengths and their support (the ``BASIC_LAYOUT``).
 
@@ -140,8 +140,8 @@ or programatically by specifying an empty list of layouts::
 
   t.explore(layouts=[])
 
-So what happens when we are not passing that argument? The explorer
-interprets it as::
+So what happens when we are not explicitely passing the `layouts`
+argument? The explorer interprets it as::
 
   from ete4.smartview import BASIC_LAYOUT
   t.explore(layouts=[BASIC_LAYOUT])
