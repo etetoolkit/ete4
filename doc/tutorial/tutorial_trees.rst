@@ -1,16 +1,17 @@
 .. currentmodule:: ete4
 
-Working with the Tree structure
-===============================
+The Tree structure
+==================
 
 .. contents::
 
 Trees
 -----
 
-Trees are widely-used data structures that emulate a tree shape with a
-set of linked nodes. Each node in a tree has zero or more child nodes,
-and one parent node (except the root node, which has no parent).
+A **tree** is a widely-used data structures that emulates a tree shape
+with a set of linked **nodes**. Each node in a tree has zero or more
+child nodes, and one parent node (except the **root node**, which has
+no parent).
 
 Formally, a tree is a *graph* (set of connected nodes) which is
 *directed* (connections have direction), *acyclic* (there are no
@@ -33,10 +34,11 @@ Every node in a tree can be seen as the root node of the *subtree*
 composed of that node and all its descendants.
 
 In bioinformatics, trees are the result of many analyses, such as
-phylogenetics or clustering. To assists in their automated
-manipulation, analysis and visualization, we developed ETE. It
-provides general methods to handle and visualize tree topologies, as
-well as specific modules to deal with phylogenetic trees.
+phylogenetics or clustering. To assists in their manipulation,
+analysis and visualization, we developed ETE (the *Environment for
+Tree Exploration*). It is a Python package that provides general
+methods to handle and visualize tree topologies, as well as specific
+modules to deal with phylogenetic trees.
 
 
 .. _sec:newick-formats:
