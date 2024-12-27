@@ -14,18 +14,29 @@ from .faces import Face, PropFace, TextFace
 
 # Layouts have all the information needed to represent a tree.
 #
-# They compose. Using several layouts will add extra graphic
-# representations, and/or overwrite some styles from previous layouts.
-#
-# They have a name and two functions providing the style and decorations of:
-# - the full tree (for example rectangular/circular, with scale, etc.)
-# - each visible node (called for each node) or group of collapsed sibling nodes
 
 class Layout:
-    """Contains all the info about how to represent a tree."""
+    """
+    A complete specification of how to represent a tree.
+
+    Layouts have a name and two functions providing the style and
+    decorations of the full tree and the visible nodes.
+
+    When exploring a tree, layouts compose. Using several layouts will
+    add extra graphic representations, and/or overwrite some styles
+    from previous layouts.
+    """
 
     def __init__(self, name, draw_tree=None, draw_node=None, cache_size=None,
                  active=True):
+        """
+        :param name: String identifying the layout (to select in the gui, etc.)
+        :param draw_tree: Function specifying tree style and decorations.
+        :param draw_node: Function specifying node style and decorations.
+        :param cache_size: Number of elements that draw_node() will memorize
+            (useful values are None for infinite cache, and 0 for no cache).
+        :param active: If True, the layout is used immediately when exploring.
+        """
         self.cache_size = cache_size  # used to cache functions in the setters
 
         # Name. This is mainly to activate/deactivate the layout in the gui.
@@ -157,13 +168,15 @@ def update_style(style, style_new):
         update_style(style[k], style_new[k])
 
 
-# A decoration is a face with a position ("top", "bottom", "right",
-# etc.), a column (an integer used for relative order with other faces
-# in the same position), and an anchor point (to fine-tune the
-# position of things like texts within them).
 
 @dataclass
 class Decoration:
+    """
+    A decoration is a face with a position ("top", "bottom", "right",
+    etc.), a column (an integer used for relative order with other faces
+    in the same position), and an anchor point (to fine-tune the
+    position of things like texts within them).
+    """
     face: Face
     position: str
     column: int
