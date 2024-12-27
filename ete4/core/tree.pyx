@@ -39,10 +39,10 @@ cdef class Tree:
 
         Examples::
 
-            t1 = Tree()  # empty tree
-            t2 = Tree({'name': 'A'})
-            t3 = Tree('(A:1,(B:1,(C:1,D:1):0.5):0.5);')
-            t4 = Tree(open('/home/user/my-tree.nw'))
+          t1 = Tree()  # empty tree
+          t2 = Tree({'name': 'A'})
+          t3 = Tree('(A:1,(B:1,(C:1,D:1):0.5):0.5);')
+          t4 = Tree(open('/home/user/my-tree.nw'))
         """
         self.up = None
         self.children = children or []
