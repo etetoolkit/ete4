@@ -323,7 +323,7 @@ are objects of the class :class:`Layout <layout.Layout>`. They contain:
 - ``cache_size``: The number of arguments cached when calling `draw_node` (defaults to all).
 - ``active``: Whether the layout will be immediately active when exploring (defaults to True).
 
-Let's look at how to use them::
+Let's look at how to use them. The simplest case is::
 
   from ete4 import Tree
   from ete4.smartview import Layout
@@ -335,11 +335,14 @@ Let's look at how to use them::
 
   t.explore(layouts=[layout])
 
-.. TODO: add image
+We can see a representation of the tree, and in the control panel, a
+layout that appears with the name "I am a layout doing nothing".
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/treelayout_1.jpg?raw=true
-   :alt: alternative text
-   :align: center
+.. image:: ../images/layout_example.png
+
+It name is accurate, as we can see if we activate or desactivate it by
+clicking its checkbox: nothing happens, no extra information is shown
+in the tree anyway.
 
 
 Changing the tree style
@@ -349,9 +352,12 @@ The ``draw_tree`` field of a layout specifies the general aspects of the
 tree style. For example, we can modify the scale used to render tree
 branches or choose between circular or rectangular tree drawing, etc.
 
-It can be a dictionary with the style settings, or a function that
-returns such a dictionary, or a list with dictionaries and faces (the
-style options will come from those dictionaries).
+In general, it is a function of the tree, and returns a list of
+decorations and styles to use.
+
+We often just need to change its style, and in a way that does not
+depend on the tree. For that common case, ``draw_tree`` can also be a
+dictionary with the style.
 
 A dictionary with the tree style can look like this::
 
@@ -376,7 +382,7 @@ The last four (**box**, **dot**, **hz-line**, **vt-line**) define the
 general look for all the nodes, but they can be overriden too in an
 individual basis with the function ``draw_node`` as explained below.
 
-The :class:`Layout` documentation has a complete list of options.
+The :class:`Layout <layout>` documentation has a complete list of options.
 
 Let's see some examples of how to modify tree style.
 
@@ -427,8 +433,8 @@ options are **fill**, **stroke**, **stroke-width**, **opacity**, but
 there are also many more: **fill-opacity**, **stroke-opacity**,
 **stroke-linecap**, **stroke-linejoin**, **stroke-miterlimit**,
 **stroke-dashoffset**, **stroke-dasharray**, **paint-order**,
-**fill-rule**, etc. They are all based on [SVG
-attributes](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes).
+**fill-rule**, etc. They are all based on `SVG attributes
+<https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes>`_.
 
 In addition to those, some elements have extra attributes:
 
