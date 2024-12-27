@@ -45,7 +45,7 @@ The concepts that ETE uses to describe the visualization are:
 - **Styles** represented as dictionaries. For example ``{'shape':
   'circular', 'hz-line': {'stroke-width': 2}}``.
 - **Faces**, pictorial or textual *information pieces* represented by
-  the class :class:`Face <faces.Face>`, with a variety of subclasses
+  the class :class:`Face <faces>`, with a variety of subclasses
   for different kinds of representations (:class:`TextFace
   <faces.TextFace>`, :class:`ImageFace <faces.ImageFace>`, ...). Faces
   know how to return graphic elements showing the information
@@ -57,13 +57,13 @@ The concepts that ETE uses to describe the visualization are:
   etc.), and in which column to put it (to stack it nicely with other
   faces from the same layout or a different one).
 - **Layouts**, full descriptions of how to represent a tree, using the
-  class :class:`Layout <layout.Layout>`. It contains a
-  :func:`draw_node <layout.Layout.draw_node>` property, which is a
-  function that produces the decorations and styles that we want for a
-  given node, and a :func:`draw_tree <layout.Layout.draw_tree>`
-  property that does the same for the full tree. They compose: using
-  several layouts will add extra graphic representations, and/or
-  overwrite some styles from previous layouts.
+  class :class:`Layout <layout.Layout>`. They contain a
+  :func:`draw_node()` function that produces the decorations and
+  styles that we want for a given node, and a :func:`draw_tree()`
+  function that does the same for the full tree. They
+  exploring/visualizing a tree, they compose: using several layouts
+  will add extra graphic representations, and/or overwrite some styles
+  from previous layouts.
 
 
 Launching the explorer
@@ -146,7 +146,7 @@ argument? The explorer interprets it as::
   from ete4.smartview import BASIC_LAYOUT
   t.explore(layouts=[BASIC_LAYOUT])
 
-.. add image
+.. TODO: add image
 
 
 Showing node's properties in a popup
@@ -176,11 +176,7 @@ Control panel
 When exploring the tree, a control panel will be shown in the left
 side of the tree panel.
 
-.. TODO: change the image
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/control_panel.png?raw=true
-   :alt: alternative text
-   :align: center
+.. image:: ../images/panel.png
 
 It consists of the three major tabs:
 
@@ -191,6 +187,8 @@ It consists of the three major tabs:
 
 1) Main
 ^^^^^^^
+
+.. image:: ../images/panel_main.png
 
 This tab contains the general settings of the tree visualization. It
 includes among other things:
@@ -208,6 +206,8 @@ includes among other things:
 
 2) Selections
 ^^^^^^^^^^^^^
+
+.. image:: ../images/panel_selections.png
 
 This tab contains the searches and selected nodes.
 
@@ -282,6 +282,8 @@ Some examples of searches and possible matches:
 3) Advanced
 ^^^^^^^^^^^
 
+.. image:: ../images/panel_advanced.png
+
 This tab contains functions to select subtrees, sort, change styles
 and more.
 
@@ -294,19 +296,15 @@ Context menu
 We can right-click on a node to open a context menu with different
 options.
 
-.. TODO: update image
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/nodepanel.png?raw=true
-   :alt: alternative text
-   :align: center
+.. image:: ../images/context_menu.png
 
 There are many node-specific actions such as renaming, collapsing,
 moving and more. And there are a few tree actions like reseting the
 view, sorting the tree, or converting it to dendogram or ultrametric.
 
 
-Customizing tree visualization
-------------------------------
+Customizing the visualization
+-----------------------------
 
 The main elements used to customize the visualization are *styles*,
 *faces*, *decorations*, and *layouts*.
@@ -317,17 +315,15 @@ Layouts
 
 Layouts contain the ``draw_node()`` and ``draw_tree()`` functions, which
 create the styles and faces that we use to represent the tree. They
-are objects of the class :class:`Layout` from
-:class:`ete4.smartview:`. They contain:
-
+are objects of the class :class:`Layout <layout.Layout>`. They contain:
 
 - ``name``: Identifies the layout, so it can be activated/deactivated in the GUI.
-- ``draw_tree()``: a function that sets style and faces for the full tree.
-- ``draw_node()``: a function that sets style and faces for the given nodes.
-- ``cache_size``: number of arguments cached when calling `draw_node` (defaults to all).
-- ``active``: whether to start with the layout active (defaults to True).
+- ``draw_tree()``: A function that sets style and decorations for the full tree.
+- ``draw_node()``: A function that sets style and decorations for the given nodes.
+- ``cache_size``: The number of arguments cached when calling `draw_node` (defaults to all).
+- ``active``: Whether the layout will be immediately active when exploring (defaults to True).
 
-Let's look at how to use it::
+Let's look at how to use them::
 
   from ete4 import Tree
   from ete4.smartview import Layout
