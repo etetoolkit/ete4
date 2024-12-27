@@ -1,3 +1,15 @@
+"""
+A "face" is a piece of drawn information.
+
+Different faces can represent different kinds of information in
+different forms. Faces have a drawing function that returns the
+graphic elements that will show the information, and the size they
+occupy (in tree coordinates).
+"""
+
+# Other names that may be better than "face": glyph, chip, infobox,
+# ibox, ichip, infochip.
+
 import os
 from base64 import b64encode
 from math import pi
@@ -7,11 +19,6 @@ from .coordinates import Size, Box, make_box
 from . import graphics as gr
 
 
-# A "face" (glyph, chip, infobox, ibox, ichip, infochip) is a piece of
-# drawn information. It has a drawing function which is a function of
-# a node that returns the graphic elements that will show the
-# information. It also has a drawing function for collapsed elements.
-
 class Face:
     """Base class (mostly an example of the expected interface)."""
 
@@ -20,23 +27,24 @@ class Face:
         pass  # in this example, we don't save any
 
     def draw(self, nodes, size, collapsed, zoom=(1, 1), ax_ay=(0, 0), r=1):
-        """Return a list of graphic elements and the actual size they use."""
-        # The retuned graphic elements normally depend on the node(s).
-        # They have to fit inside the given size (dx, dy) in tree
-        # coordinates (dx==0 means no limit for dx).
+        """Return a list of graphic elements and the actual size they use.
 
-        # If collapsed=[], nodes contain only one node (and is not collapsed).
-        # Otherwise, nodes (== collapsed) is a list of the collapsed nodes.
+        The retuned graphic elements normally depend on the node(s).
+        They have to fit inside the given size (dx, dy) in tree
+        coordinates (dx==0 means no limit for dx).
 
-        # The zoom is passed in case the face wants to represent
-        # things differently according to its size on the screen.
+        If collapsed=[], nodes contain only one node (and is not collapsed).
+        Otherwise, nodes (== collapsed) is a list of the collapsed nodes.
 
-        # ax_ay is the anchor point within the box of the given size
-        # (from 0 for left/up, to 1 for right/down).
+        The zoom is passed in case the face wants to represent
+        things differently according to its size on the screen.
 
-        # r * size[1] * zoom[1] is the size in pixels of the left
-        # border, whether we are in rectangular or circular mode.
+        ax_ay is the anchor point within the box of the given size
+        (from 0 for left/up, to 1 for right/down).
 
+        r * size[1] * zoom[1] is the size in pixels of the left
+        border, whether we are in rectangular or circular mode.
+        """
         graphic_elements = []  # like [draw_text(...), draw_line(...), ...]
 
         size_used = Size(0, 0)
