@@ -146,8 +146,6 @@ argument? The explorer interprets it as::
   from ete4.smartview import BASIC_LAYOUT
   t.explore(layouts=[BASIC_LAYOUT])
 
-.. TODO: add image
-
 
 Showing node's properties in a popup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -287,8 +285,6 @@ Some examples of searches and possible matches:
 This tab contains functions to select subtrees, sort, change styles
 and more.
 
-.. TODO: Add image.
-
 
 Context menu
 ~~~~~~~~~~~~
@@ -384,7 +380,7 @@ individual basis with the function ``draw_node`` as explained below.
 
 The :class:`Layout <layout>` documentation has a complete list of options.
 
-Let's see some examples of how to modify tree style.
+Let's see some examples of how to modify the tree style.
 
 
 Example of simple change
@@ -403,6 +399,9 @@ the options we want to ``draw_tree``::
                   draw_tree={'node-height-min': 100})
 
   t.explore(layouts=[layout])
+
+In this case, we are requesting to collapse any node with a height
+less than 100 pixels.
 
 .. TODO: Add LegendFace, maybe, and have draw.js put Decoration(...,
    position='top') or 'top-right', etc, put things in that place.
@@ -439,10 +438,14 @@ there are also many more: **fill-opacity**, **stroke-opacity**,
 In addition to those, some elements have extra attributes:
 
 - **dot**
+
   - **shape**: Figure (circle, square, ...) or its number of sides, representing the node.
   - **radius**: The approximate radius in pixels of the dot.
+
+
 - **collapsed** (only used from the tree style)
-  - **shape**: Representation of collapsed nodes as "skeleton" or "outline"
+
+  - **shape**: Representation of collapsed nodes as "skeleton" or "outline".
 
 
 Example of simple change
@@ -453,7 +456,7 @@ A simple tree where we change the style for the leaves::
   from ete4 import Tree
   from ete4.smartview import Layout
 
-  t = Tree('((A,B),C);')
+  t = Tree('((a,b),c);')
 
   # Nodes will be represented as small red triangles of 5 pixels radius.
   style_dot = {'shape': 'triangle',
@@ -473,387 +476,300 @@ A simple tree where we change the style for the leaves::
   layout = Layout(name='My layout', draw_node=draw_node)
   t.explore(layouts=[layout])
 
+.. image:: ../images/my_layout.png
 
-.. TODO: Continue :)
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/nodestyle_triangle.png?raw=true
-   :alt: alternative text
-   :align: center
-
-Now in legend of the layout shows in top-right corner of the tree panel.
-
-Source code can be found in in ETE4 here: `nodestyle_triangle.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/nodestyle_triangle.py>`_.
-
-
-If you want to draw nodes with different styles, an independent
-:class:`NodeStyle` instance must be created for each node.
-
-Simple tree in which the different styles are applied to each node::
+We can use different styles for different nodes. Let's see a couple of
+examples::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout, NodeStyle
+  from ete4.smartview import Layout
 
   t = Tree('((a,b),c);')
 
-  # Draw nodes as small red square of diameter equal fo 10 pixels
-  # Create an independent node style for each node, which is
-  # initialized with a red foreground color.
-  leaf_style = NodeStyle()
-  leaf_style["shape"] = "square"
-  leaf_style["size"] = 10
-  leaf_style["fgcolor"] = "red"
+  # Leaves will have small red squares of radius 10 pixels.
+  leaf_style = {'dot': {'shape': 'square',
+                        'radius': 5,
+                        'fill': 'red'}}
 
-  # we set the foreground color to blue and the size to 30 for the root node
-  root_style = NodeStyle()
-  root_style["fgcolor"] = "blue"
-  root_style["size"] = 30
-  root_style["vt_line_type"] = 2
-  root_style["vt_line_width"] = 10
-  root_style["vt_line_color"] = "#964B00"
+  # The root node will be blue, with a dot of 15 pixel radius, and a
+  # custom vertical line.
+  root_style = {'box': {'fill': 'blue'},
+                'dot': {'radius': 15},
+                'vt-line': {'stroke': '#964B00',
+                            'stroke-width': 10,
+                            'stroke-dasharray': '5,5'}}
 
-  # Draw nodes as small red square of diameter equal fo 10 pixels
-  def modify_node_style(node):
-      # Let's now modify the aspect of the leaf nodes
+  def draw_node(node):
       if node.is_leaf:
-          node.set_style(leaf_style)
-      # Let's now modify the aspect of the root node
-      # Check if the node is the root node
+          return leaf_style
       elif node.is_root:
-          node.set_style(root_style)
-      else:
-          pass
-      return
+          return root_style
 
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout", ns=modify_node_style)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
+  layout = Layout(name='My layout', draw_node=draw_node)
+  t.explore(layouts=[layout])
 
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/nodestyle_different.png?raw=true
-   :alt: alternative text
-   :align: center
-
-Source code can be found in in ETE4 here: `nodestyle_different.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/nodestyle_different.py>`_.
-
-Node faces
-~~~~~~~~~~
-
-Node faces are small pieces of graphical information that can be
-linked to nodes. For instance, text labels or external images could be
-linked to nodes and they will be plotted within the tree image.
-
-Several types of node faces are provided by the main :mod:`smartview`
-module, ranging from simple text (:class:`TextFace`) and geometric
-shapes (:class:`CircleFace`) or (:class:`RectFace`), to molecular sequence representations
-(:class:`SeqFace`), and specific faces for collapsed clade (:class:`OutlinedFace`), etc.
-
-A complete list of available faces can be found at the :mod:`smartview`
-reference page. All node faces example with demonstration code can be found in
-https://github.com/dengzq1234/ete4_gallery.
-
-
-
-Faces position
-^^^^^^^^^^^^^^
-
-Faces can be added to different areas around the node, namely
-**branch_right**, **branch_top**, **branch_bottom** or **aligned**.
-Each area represents a table in which faces can be added through the
-:func:`add_face <ete4.Tree.add_face>` method. For instance, if you
-want two text labels drawn below the branch line of a given node, a
-pair of :class:`TextFace` faces can be created and added to the
-columns 0 and 1 of the **branch_bottom** area::
-
-  from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
-
-  t = Tree('((a:1,b:1):1,c:1)Root:1;')
-
-  # Draw nodes text face in root node
-  def modify_face_position(node):
-      if node.is_root:
-          node.add_face(TextFace("Hola!", color="red"), column=0, position='branch_bottom')
-          node.add_face(TextFace('mundo!', color="blue"), column=1, position='branch_bottom')
-      return
-
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout", ns=modify_face_position)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_bottom_1.png?raw=true
-   :alt: alternative text
-   :align: center
-
-If we set the column of "mundo" text face as 0
+.. image:: ../images/draw_node.png
 
 ::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
+  from ete4.smartview import Layout, BASIC_LAYOUT
 
-  .....
-    node.add_face(TextFace('mundo!', color="blue"), column=0, position='branch_bottom')
-  .....
-  t.explore(keep_server=True, layouts=layouts)
+  t = Tree('((((a,b),c),d),e);')
+
+  vowels = {'a', 'e', 'i', 'o', 'u'}
+
+  def draw_node(node):
+      if node.is_leaf:
+          if node.name in vowels:
+              return {'dot': {'radius': 8},
+                      'box': {'fill': 'red'}}
+
+  layout = Layout(name='My layout', draw_node=draw_node)
+  t.explore(layouts=[BASIC_LAYOUT, layout])
+
+.. image:: ../images/vowels.png
 
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_bottom_2.png?raw=true
-   :alt: alternative text
-   :align: center
+Faces and decorations
+~~~~~~~~~~~~~~~~~~~~~
 
-Source code can be found in in ETE4 here: `faceposition_bottom.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_bottom.py>`_.
+Faces are small pieces of graphical information that can be shown in
+nodes. For instance, text labels or external images can be linked to
+nodes and they will be plotted within the tree image.
+
+Several types of node faces are provided by the
+:mod:`ete4.smartview.faces` submodule, ranging from simple text
+(:class:`TextFace <faces.TextFace>`) and geometric shapes
+(:class:`CircleFace <faces.CircleFace>`) or (:class:`RectFace
+<faces.RectFace>`), to molecular sequence representations
+(:class:`SeqFace <faces.SeqFace>`).
+
+A complete list of available faces can be found at the
+:mod:`faces module page <ete4.smartview.faces>`.
 
 
-If you add more than one face to the same area and column, they will
-be piled up. If position set **aligned**, the face of node will be drawn
-aligned in an aligned column. If doing so, TreeLayout's argument **aligned_faces**
-should be set as **True** to avoid the tree node's name overlapped with node faces.
+Positioning faces with decorations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**aligned** position example::
+Faces can be added to different areas around the node, namely
+**right**, **left**, **top**, **bottom** or **aligned**. Each area
+represents a table in which faces can be placed with a
+:func:`Decoration <layout.Decoration>`.
+
+For instance, if you want two text labels drawn below the branch line
+of a given node, a pair of :class:`TextFace <face.TextFace>` faces can
+be created and put into decorations for the columns 0 and 1 of the
+**bottom** area, which are returned by the function ``draw_node``::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
+  from ete4.smartview import Layout, Decoration, TextFace
+
+  t = Tree('((a:1,b:1):1,c:1):1;')
+
+  def draw_node(node):
+      if node.is_root:
+          return [Decoration(TextFace('hello', style={'fill': 'red'}),
+                             column=0, position='bottom'),
+                  Decoration(TextFace('world', style={'fill': 'blue'}),
+                             column=1, position='bottom')]
+
+  layout = Layout(name='My layout', draw_node=draw_node)
+  t.explore(layouts=[layout])
+
+.. image:: ../images/face_bottom.png
+
+If we set the column of "world" to 0 too::
+
+  from ete4 import Tree
+  [...]
+          return [Decoration(TextFace('hello', style={'fill': 'red'}),
+                             column=0, position='bottom'),
+                  Decoration(TextFace('world', style={'fill': 'blue'}),
+                             column=0, position='bottom')]
+  [...]
+  t.explore(layouts=[layout])
+
+.. image:: ../images/face_bottom2.png
+
+So if we add more than one face to the same area and column, they will
+be piled up.
+
+If the position is **aligned**, the face will be drawn in an aligned
+column. Let's see an example::
+
+  from ete4 import Tree
+  from ete4.smartview import Layout, Decoration, TextFace
 
   t = Tree('((a,b),c);')
 
-  # Draw nodes text face in leaf node
-  def modify_face_position(node):
+  def draw_node(node):
       if node.is_leaf:
-          node.add_face(TextFace("Hola!", color="red"), column=0, position='aligned')
-          node.add_face(TextFace('mundo!', color="blue"), column=1, position='aligned')
-      return
+          return [Decoration(TextFace('hello', style={'fill': 'red'}),
+                             column=0, position='aligned'),
+                  Decoration(TextFace('world', style={'fill': 'blue'}),
+                             column=1, position='aligned')]
 
-  # set aligned_faces=True because we want to align the faces
-  tree_layout = TreeLayout(name="MyTreeLayout", ns=modify_face_position, aligned_faces=True)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
+  layout = Layout(name='My layout', draw_node=draw_node)
+  t.explore(layouts=[layout])
 
-See the following image
+.. image:: ../images/face_aligned.png
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_aligned.png?raw=true
-   :alt: alternative text
-   :align: center
-
-Source code can be found in in ETE4 here: `faceposition_aligned.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_aligned.py>`_.
 
 .. note::
 
-  Once a face object is created, it can be linked to one or more
-  nodes. For instance, the same text label can be recycled and added
-  to several nodes.
+  Once a face object is created, it can be used in one or more nodes.
+  For instance, the same text label could be "recycled" and added to
+  several nodes.
 
-Face for collapsed clades
-^^^^^^^^^^^^^^^^^^^^^^^^^
-A notable feature in smartview in ete4 is able to collapse clades in the tree.
-When a clade is collapsed, a triangle will be drawn as default in the node. Therefore,
-a face can be added to the collapsed clade to show more information.
 
-For node faces in collapsed clades, modify *collapsed_only* argument to True in method
-:func:`add_face <ete4.Tree.add_face>`
+Collapsed nodes
+^^^^^^^^^^^^^^^
 
-**collapsed_only** example::
+When viewing a large tree, ETE will collapse all the branches that are
+too small to be seen. When a branch is collapsed, we see a skeleton of
+its contents by default (but the shape can be changed to a triangular
+outline if we set it in the tree style, ``{'collapsed': {'shape':
+'outline'}}``).
+
+When drawing collapsed nodes, we see by default the faces that
+correspond to all the sibling nodes that are collapsed together. But
+we can fine-tune this behavior by passing a second argument to the
+``draw_node`` function. This argument will contain a list of all the
+collapsed (sibling) nodes at the time of the drawing, and it will be
+empty if the node is not collapsed. The function will look like
+``draw_node(node, collapsed)``::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
+  from ete4.smartview import Layout, Decoration
 
-  t = Tree('((a:1,b:1)n1:1,c):1;')
+  t = Tree('((a:1,b:1)n1:1,c):1;', parser='name')
 
-  # Draw nodes text face in node with name n1
-  def modify_face_position(node):
-      # find node with name n1
-      if node.name == "n1":
-          # write text face "Hola" in node n1 and show it in branch_right directly
-          node.add_face(TextFace("Hola!", color="red"), column=0, position='branch_right', collapsed_only=False)
-          # write text face "Hola" in node n1 and show it in branch_right only when node is collapsed
-          node.add_face(TextFace('mundo!', color="blue"), column=1, position='branch_right', collapsed_only=True)
-      return
+  def draw_node(node, collapsed):
+      if node.name == 'n1':
+          if collapsed:
+              return Decoration('n1 is collapsed', column=0, position='right')
+          else:
+              return Decoration('n1 is NOT collapsed', column=0, position='right')
 
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout", ns=modify_face_position)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
+  layout = Layout(name='My layout', draw_node=draw_node)
+  t.explore(layouts=[layout])
 
-"Hola" TextFace shown in branch_right of node "n1" directly with argument **collapsed_only=False**
+Depending on the zoom level, we now will see:
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_collapsed_before.png?raw=true
-   :alt: alternative text
-   :align: center
+.. image:: ../images/not_collapsed.png
+.. image:: ../images/collapsed.png
 
-"mundo" TextFace shown in branch_right of node "n1" only when node is collapsed with argument **collapsed_only=True**
+By the way, did you notice that we did not create a ``TextFace`` in
+this case? If we pass a text to a ``Decoration`` instead of a face, it
+will assume that we want a simple text face with that content.
 
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_collapsed_after.png?raw=true
-   :alt: alternative text
-   :align: center
+.. TODO: See what the example of "all face positions" is about and update it.
 
+.. Example of all face positions
+.. https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_all.png?raw=true
+.. source code can be found in in ETE4 here: `faceposition_all.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_all.py>`_.
 
-Source code can be found in in ETE4 here: `faceposition_collapsed.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_collapsed.py>`_.
-
-Example of all face positions
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_all.png?raw=true
-   :alt: alternative text
-   :align: center
-
-Source code can be found in in ETE4 here: `faceposition_all.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceposition_all.py>`_.
+.. End of that TODO.
 
 
 Face properties
 ^^^^^^^^^^^^^^^
 
-Each face instance has its specific config values, although all face
-instances contain the same basic attributes that permit to modify
-general aspects such as padding, etc.  In order to explore the properties of each face,
-a complete list of face attributes can be found in
-each :class:`Face` class documentation, such as :class:`TextFace`, :class:`RectFace`, etc.
-Here is a very simple example::
+Each face has its own properties that control the details of its
+drawing. We can find a complete list for each face in the
+:class:`faces module documentation <faces>`.
+
+Let's look at a simple example::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
+  from ete4.smartview import Layout, TextFace
 
   t = Tree('((a:1,b:1):1,c:1):1;')
 
-  top_textface = TextFace(text="branch top!")
-  top_textface.color = 'blue'
-  top_textface.min_fsize = 6
-  top_textface.max_fsize = 25
-  top_textface.ftype = 'courier'
-  top_textface.padding_x = 0
-  top_textface.padding_y = 0
-  top_textface.width = None
-  top_textface.rotation = 0
+  # Create a TextFace initialized with certain properties.
+  face_top = TextFace('branch top!',
+                      fs_min=6, fs_max=25, rotation=-10,
+                      style={'fill': 'blue', 'font-family': 'courier'})
 
-  # or all together
-  bottom_textface = TextFace(text="branch bottom!", color='red',
-              min_fsize=6, max_fsize=25, ftype='sans-serif',
-              padding_x=1, padding_y=1, width=None, rotation=0)
+  # Same thing, but adding them after initializing it.
+  face_bottom = TextFace('branch bottom!')
+  face_bottom.fs_min = 6
+  face_bottom.fs_max = 25
+  face_bottom.rotation = 10
+  face_bottom.style = {'fill': 'red', 'font-family': 'sans-serif'}
 
+  def draw_node(node):
+      return [Decoration(face_top, position='top'),
+              Decoration(face_bottom, position='bottom')]
 
-  # Draw nodes text face in root node
-  def modify_face_property(node):
-      node.add_face(top_textface, column=0, position='branch_top')
-      node.add_face(bottom_textface, column=0, position='branch_bottom')
-      return
+  layout = Layout(name='My layout', draw_node=draw_node)
+  t.explore(layouts=[layout])
 
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout", ns=modify_face_property)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceproperties_textface.png?raw=true
-   :alt: alternative text
-   :align: center
-
-Source code can be found in in ETE4 here: `faceproperties_textface.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/faceproperties_textface.py>`_.
+.. image:: ../images/face_properties.png
 
 
-Advanced Layout functions
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Combining styles and decorations
+--------------------------------
 
-Layout functions act as pre-drawing `hooking functions
-<http://en.wikipedia.org/wiki/Hooking>`_. This means that, before a
-node is drawn, it is first sent to a layout function. Node properties,
-style and faces can be then modified on the fly and returned to the
-drawing engine. Thus, layout functions can be understood as a
-collection of rules controlling how different nodes should be drawn.
+The ``draw_node`` function can return a list with as many styles and
+decorations as we want.
 
-Wrap in function::
+If it returns just one element (a decoration or a dictionary
+representing a style), it is intepreted as a list of only one element
+(itself).
 
-  from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
+Instead of returning a list, we can also *yield* elements, that is,
+``draw_node`` would become a Python iterator. This syntax is the
+cleanest and this way is the most efficient of all, so we will use it
+in the following examples.
 
-  t = Tree('((((a,b),c),d),e);')
+.. TODO: Add link to doc on python iterators.
 
-  # here to modfiy node style directly inside the function
-  def vowel_node_layout(node):
-      vowels = {'a', 'e', 'i', 'o', 'u'}
-
-      # here to set the node style
-      if node.is_leaf:
-          if node.name in vowels:
-              node.sm_style['size'] = 15
-              node.sm_style['fgcolor'] = 'red'
-
-
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout", ns=vowel_node_layout)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/advance_layout_1.png?raw=true
-   :alt: alternative text
-   :align: center
-
-Source code can be found in in ETE4 here: `advance_layout.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/advance_layout.py>`_.
-
-
-Combining styles, faces and layouts
------------------------------------
 
 Fixed node styles, faces and tree style
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-example ::
+Let's see an example combining styles and faces, for both the tree
+(with ``draw_tree``) and the nodes (with ``draw_node``)::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
+  from ete4.smartview import Layout, TextFace
 
   t = Tree('((((a,b),c),d),e);')
 
-  def vowel_tree_style(tree_style):
-      text = TextFace("Vowel title", min_fsize=5, max_fsize=12, width=50, rotation=0)
-      tree_style.aligned_panel_header.add_face(text, column=0)
-      tree_style.add_legend(
-          title="MyLegend",
-          variable="discrete",
-          colormap={"vowel":"red", "conostant":"blue"}
-          )
+  def draw_tree(tree):
+      yield Decoration(TextFace('Vowel title', fs_min=5, fs_max=12),
+                       position='header')
+      #yield Decoration(LegendFace('My legend',
+      #                            variable='discrete',
+      #                            colormap={'vowel': 'red', 'conostant': 'blue'}))
 
-  def vowel_node_layout(node):
-      vowels = {'a', 'e', 'i', 'o', 'u'}
+  vowels = {'a', 'e', 'i', 'o', 'u'}
 
-      # here to set the node style
-      if node.is_leaf:
-          if node.name in vowels:
-              node.sm_style['size'] = 5
-              node.sm_style['fgcolor'] = 'red'
-              # here to add text face to node in aligned position
-              node.add_face(TextFace('vowel!', color="red"), column=0, position='aligned')
+  def draw_node(node):
+      if not node.is_leaf:
+          return
 
-          else:
-              node.sm_style['size'] = 5
-              node.sm_style['fgcolor'] = 'blue'
+      if node.name in vowels:
+          yield {'dot': {'radius': 3},
+                 'box': {'fill': 'red'}}
+          yield Decoration(TextFace('vowel!', style={'fill': 'red'}),
+                           position='aligned')
+      else:
+          yield {'dot': {'radius': 3},
+                 'box': {'fill': 'blue'}}
+          yield Decoration(TextFace('not vowel!', style={'fill': 'blue'}),
+                           position='aligned')
 
-              # here to add text face to node in aligned position
-              node.add_face(TextFace('not vowel!', color="blue"), column=0, position='aligned')
+  layout = Layout('My layout', draw_tree=draw_tree, draw_node=draw_node)
+  t.explore(layouts=[layout])
 
-
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(name="MyTreeLayout",
-      ts=vowel_tree_style,
-      ns=vowel_node_layout,
-      active=True,
-      aligned_faces=True)
+.. image:: ../images/combined.png
 
 
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
-
-Combined node styles, faces and tree style into one TreeLayout:
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/combinedlayout_basic.png?raw=true
-   :alt: alternative text
-   :align: center
-
-Source code can be found in in ETE4 here: `combinedlayout_basic.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/combinedlayout_basic.py>`_.
+.. TODO: Continue from here!
 
 
 Define Layout objects
