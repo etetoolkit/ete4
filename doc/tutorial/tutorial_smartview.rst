@@ -728,8 +728,8 @@ in the following examples.
 .. TODO: Add link to doc on python iterators.
 
 
-Fixed node styles, faces and tree style
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Combining styles and faces
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Let's see an example combining styles and faces, for both the tree
 (with ``draw_tree``) and the nodes (with ``draw_node``)::
@@ -768,177 +768,63 @@ Let's see an example combining styles and faces, for both the tree
 
 .. image:: ../images/combined.png
 
-
-.. TODO: Continue from here!
-
-
-Define Layout objects
-~~~~~~~~~~~~~~~~~~~~~
-
-As we showed above, layout functions can be passed to the TreeLayout
-class to create a TreeLayout object. Therefore we can define our own
-customized layout.
-
-Example::
+Let's see another example, where we change the background of certain
+nodes that are common ancestors to other nodes we are interested in::
 
   from ete4 import Tree
-  from ete4.smartview import TreeLayout, TextFace
-
-  t = Tree('((((a,b),c),d),e);')
-
-
-  class MyTreeLayout(TreeLayout):
-      def __init__(self, name="My First TreeLayout", min_fsize=5, max_fsize=12,
-              width=50, rotation=0, vowel_color="red", conostant_color="blue",
-              vowel_node_size=5, conostant_node_size=5, aligned_faces=True,
-              column=0):
-
-          # Ensuring that any initialization that TreeLayout needs to do is done,
-          # before MyTreeLayout goes on to do its own additional initialization.
-          super().__init__(name, aligned_faces=True)
-
-          self.name = name
-          self.min_fsize = min_fsize
-          self.max_fsize = max_fsize
-          self.width = width
-          self.rotation = rotation
-
-          self.vowel_color = vowel_color
-          self.conostant_color = conostant_color
-          self.vowel_node_size = vowel_node_size
-          self.conostant_node_size = conostant_node_size
-          self.aligned_faces = aligned_faces
-          self.column = column
-
-
-      def set_tree_style(self, tree, style):
-          text = TextFace(self.name, min_fsize=self.min_fsize,
-              max_fsize=self.max_fsize, width=self.width, rotation=self.rotation)
-
-          style.aligned_panel_header.add_face(text, column=self.column)
-          style.add_legend(
-              title=self.name,
-              variable="discrete",
-              colormap={"vowel":"red", "conostant":"blue"}
-              )
-
-      def set_node_style(self, node):
-          vowels = {'a', 'e', 'i', 'o', 'u'}
-          vowel_textface = TextFace(
-              text="vowel", color=self.vowel_color,
-              min_fsize=self.min_fsize, max_fsize=self.max_fsize,
-              width=self.width, rotation=self.rotation
-          )
-
-          conostant_textface = TextFace(
-              text="not vowel!", color=self.conostant_color,
-              min_fsize=self.min_fsize, max_fsize=self.max_fsize,
-              width=self.width, rotation=self.rotation
-          )
-
-          # here to set the node style
-          if node.is_leaf:
-              if node.name in vowels:
-                  node.sm_style['size'] = self.vowel_node_size
-                  node.sm_style['fgcolor'] = self.vowel_color
-
-                  # here to add text face to node in aligned position
-                  node.add_face(vowel_textface, column=self.column, position='aligned')
-              else:
-                  node.sm_style['size'] = self.conostant_node_size
-                  node.sm_style['fgcolor'] = self.conostant_color
-
-                  # here to add text face to node in aligned position
-                  node.add_face(conostant_textface, column=self.column, position='aligned')
-
-
-  # Create a TreeLayout object, passing in the function
-  tree_layout = MyTreeLayout(name="MyTreeLayout", aligned_faces=True, active=True)
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/combinedlayout_basic.png?raw=true
-   :alt: alternative text
-   :align: center
-
-Source code can be found in in ETE4 here: `combinedlayout_object.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/combinedlayout_object.py>`_.
-
-Node Backgrounds
-~~~~~~~~~~~~~~~~
-
-.. image:: https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/node_backgrounds.png?raw=true
-   :alt: alternative text
-   :align: center
-
-
-::
-
-  from ete4 import Tree
-  from ete4.smartview import TreeLayout, NodeStyle, TextFace
+  from ete4.smartview import Layout, Decoration, TextFace
 
   t = Tree('((((a1,a2),a3), ((b1,b2),(b3,b4))), ((c1,c2),c3));')
 
-  # set background color for difference node style
-  nst1 = NodeStyle()
-  nst1["bgcolor"] = "LightSteelBlue"
-  nst2 = NodeStyle()
-  nst2["bgcolor"] = "Moccasin"
-  nst3 = NodeStyle()
-  nst3["bgcolor"] = "DarkSeaGreen"
-  nst4 = NodeStyle()
-  nst4["bgcolor"] = "Khaki"
+  # Background colors.
+  style1 = {'box': {'fill': 'LightSteelBlue'}}
+  style2 = {'box': {'fill': 'Moccasin'}}
+  style3 = {'box': {'fill': 'DarkSeaGreen'}}
+  style4 = {'box': {'fill': 'Khaki'}}
 
-  # find common ancestors
-  n1 = t.common_ancestor(["a1", "a2", "a3"])
-  n2 = t.common_ancestor(["b1", "b2", "b3", "b4"])
-  n3 = t.common_ancestor(["c1", "c2", "c3"])
-  n4 = t.common_ancestor(["b3", "b4"])
+  # Find common ancestors.
+  n1 = t.common_ancestor(['a1', 'a2', 'a3'])
+  n2 = t.common_ancestor(['b1', 'b2', 'b3', 'b4'])
+  n3 = t.common_ancestor(['c1', 'c2', 'c3'])
+  n4 = t.common_ancestor(['b3', 'b4'])
 
-  # set color map dictionary
-  colormap = {
+  def draw_node(node):
+      # Add node name with big text.
+      yield Decoration(TextFace(node.name, fs_min=6, fs_max=25), position='right')
+
+      # Set the node style.
+      if node == n1:
+          yield style1
+      elif node == n2:
+          yield style2
+      elif node == n3:
+          yield style3
+      elif node == n4:
+          yield style4
+
+  layout = Layout('My layout', draw_node=draw_node)
+  t.explore(layouts=[layout])
+
+.. image:: ../images/node_backgrounds.png
+
+.. TODO: Add the equivalent of:
+   # set color map dictionary
+   colormap = {
       "ancestor_a": "LightSteelBlue",
       "ancestor_b": "Moccasin",
       "ancestor_c": "DarkSeaGreen",
       "ancestor_d": "Khaki"
-  }
+   }
+   def get_tree_style(colormap):
+       def add_legend(tree_style):
+           tree_style.add_legend(
+               title = "MyLegend",
+               variable = "discrete",
+               colormap = colormap)
+       return add_legend
 
-  def get_tree_style(colormap):
-      def add_legend(tree_style):
-          tree_style.add_legend(
-              title = "MyLegend",
-              variable = "discrete",
-              colormap = colormap
-              )
-      return add_legend
 
-  def get_background(node):
-      # make node name with bigger text
-      node.add_face(TextFace(node.name, min_fsize=6, max_fsize=25), column=0, position="branch_right")
-      # set node style
-      if node == n1:
-          node.set_style(nst1)
-      elif node == n2:
-          node.set_style(nst2)
-      elif node == n3:
-          node.set_style(nst3)
-      elif node == n4:
-          node.set_style(nst4)
-      return
-
-  # Create a TreeLayout object, passing in the function
-  tree_layout = TreeLayout(
-      name="MyTreeLayout",
-      ns=get_background,
-      ts=get_tree_style(colormap),
-      active=True)
-
-  layouts = []
-  layouts.append(tree_layout)
-  t.explore(keep_server=True, layouts=layouts)
-
-Source code can be found in in ETE4 here: `node_backgrounds.py example <https://github.com/dengzq1234/ete4_gallery/blob/master/smartview/node_backgrounds.py>`_.
-
+.. TODO: Continue from here!
 
 Color Strip
 ~~~~~~~~~~~
