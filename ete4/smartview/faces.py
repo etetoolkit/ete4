@@ -99,7 +99,7 @@ class TextFace(EvalTextFace):
     """A fixed text."""
 
     def __init__(self, text, fs_min=2, fs_max=16, rotation=0, style=None):
-        expression = '"%s"' % text.replace('"', r'\"')
+        expression = '""' if not text else '"%s"' % text.replace('"', r'\"')
         super().__init__(expression, fs_min, fs_max, rotation, style)
 
 
