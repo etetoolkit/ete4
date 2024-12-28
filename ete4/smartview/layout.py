@@ -1,6 +1,59 @@
 """
 Definition of the basic elements for a tree representation (Layout and
 Decoration), extra labels (Label), and the default tree style.
+
+The valid keys for a tree style are:
+
+- shape
+- radius
+- angle-start
+- angle-end
+- angle-span
+- node-height-min
+- content-height-min
+- collapsed
+- show-popup-props
+- hide-popup-props
+- is-leaf-fn
+- box
+- dot
+- hz-line
+- vt-line
+- aliases
+
+Some properties will be used directly by the backend: shape,
+node-height-min, content-height-min, radius, angle-start, angle-end,
+angle-span, show-popup-props, hide-popup-props, is-leaf-fn.
+
+Others  will be controlled by the css class of the element in the frontend:
+box, dot, hz-line, vt-line.
+
+And the "aliases" part will tell the frontend which styles are referenced.
+
+Example of a tree style in use::
+
+  my_tree_style = {
+     'shape': 'circular',  # or 'rectangular'
+     'radius': 5,
+     'angle-start': -pi/2,
+     'angle-end': pi/2,  # alternatively we can give 'angle-span'
+     'node-height-min': 10,
+     'content-height-min': 5,
+     'collapsed': {'shape': 'outline', 'fill-opacity': 0.8},
+     'show-popup-props': None,  # all defined properties
+     'hide-popup-props': ['support'],  # except support
+     'is-leaf-fn': lambda node: node.level > 4,
+     'box': {'fill': 'green', 'opacity': 0.1, 'stroke': 'blue'},
+     'dot': {'shape': 'hexagon', 'fill': 'red'},
+     'hz-line': {'stroke-width': 2},
+     'vt-line': {'stroke': '#ffff00'},
+     'aliases': {
+         'support': {'fill': 'green'},  # changes the default one
+         'my-leaf': {'fill': 'blue', 'font-weight': 'bold'},
+      },
+  }
+
+  layout = Layout(name='Example layout', draw_tree=my_tree_style)
 """
 
 from collections import namedtuple
@@ -128,35 +181,6 @@ DEFAULT_TREE_STYLE = {  # the default style of a tree
     }
 }
 
-# A tree style can have things like:
-#   my_tree_style = {
-#      'shape': 'circular',  # or 'rectangular'
-#      'radius': 5,
-#      'angle-start': -pi/2,
-#      'angle-end': pi/2,  # alternatively we can give 'angle-span'
-#      'node-height-min': 10,
-#      'content-height-min': 5,
-#      'collapsed': {'shape': 'outline', 'fill-opacity': 0.8},
-#      'show-popup-props': None,  # all defined properties
-#      'hide-popup-props': ['support'],  # except support
-#      'is-leaf-fn': lambda node: node.level > 4,
-#      'box': {'fill': 'green', 'opacity': 0.1, 'stroke': 'blue'},
-#      'dot': {'shape': 'hexagon', 'fill': 'red'},
-#      'hz-line': {'stroke-width': 2},
-#      'vt-line': {'stroke': '#ffff00'},
-#      'aliases': {
-#          'support': {'fill': 'green'},  # changes the default one
-#          'my-leaf': {'fill': 'blue', 'font-weight': 'bold'},
-#       },
-#   }
-#
-# Some properties will be used directly by the backend:
-#   - shape, node-height-min, content-height-min,
-#     radius, angle-start, angle-end, angle-span,
-#     show-popup-props, hide-popup-props, is-leaf-fn
-# Most  will be controlled by the css class of the element in the frontend:
-#   - box, dot, hz-line, vt-line
-# And the "aliases" part will tell the frontend which styles are referenced.
 
 def update_style(style, style_new):
     """Update the style dictionary merging properly with style_new."""
