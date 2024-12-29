@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Tree Explorer</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Expires" content="0" />
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="gui.css">
+    <script src="/static/external/sweetalert2.min.js"></script>
+    <script type="module" src="/static/js/gui.js"></script>
+  </head>
+  <body>
+    <!-- Main div where the tree is drawn with svg elements -->
+    <div id="div_tree" tabindex="-1"><svg></svg></div>
+
+    <!-- Contains the menu with options to visualize, etc. -->
+    <div id="div_menu"></div>
+
+    <!-- Scale bar and text -->
+    <div id="div_scale"><svg>
+      <line x1="10"  y1="15" x2="110" y2="15"></line>
+      <line x1="10"  y1="10" x2="10"  y2="20"></line>
+      <line x1="110" y1="10" x2="110" y2="20"></line>
+      <text id="text_scale"   x="120"  y="20" stroke-width="0.6">(scale)</text>
+    </svg></div>
+
+    <!-- Contains the context menu that appears on mouse right-click -->
+    <div id="div_contextmenu"></div>
+
+    <!-- Contains the aligned elements (in a rectangular representation) -->
+    <div id="div_aligned">
+      <div id="div_aligned_grabber"></div>
+      <div id="div_aligned_svg"><svg></svg></div>
+    </div>
+
+    <!-- Minimap and currenlty visible rectangle -->
+    <div id="div_minimap"><svg></svg></div>
+    <div id="div_visible_rect"></div>
+  </body>
+</html>

@@ -4,7 +4,7 @@ Parser for trees represented in newick format.
 
 # See https://en.wikipedia.org/wiki/Newick_format
 
-from ete4.core.tree import Tree
+from ..core.tree import Tree
 
 
 class NewickError(Exception):
@@ -37,14 +37,15 @@ def unquote(name):
 #
 # For example: {'pname': 'my-prop', 'read': str, 'write': str}
 
-# Common IO parts in property dicts.
-STRING_IO = {'read': unquote, 'write': quote}
-NUMBER_IO = {'read': float,   'write': lambda x: '%g' % float(x)}
+NAME    = {'pname': 'name',    'read': unquote, 'write': quote}
+DIST    = {'pname': 'dist',    'read': float,   'write': lambda x: '%g' % float(x)}
+SUPPORT = {'pname': 'support', 'read': float,   'write': lambda x: '%g' % float(x)}
 
-# Common property dicts.
-NAME    = dict(STRING_IO, pname='name')
-DIST    = dict(NUMBER_IO, pname='dist')
-SUPPORT = dict(NUMBER_IO, pname='support')
+MULTISUPPORT = {  # to parse multiple values of support written as v1/v2[/...]
+    'pname': 'multisupport',
+    'read': lambda field: [float(x) for x in field.split('/')],
+    'write': lambda xs: '/'.join('%g' % float(x) for x in xs),
+}
 
 # A "parser dict" says, for leaf and internal nodes, what 'p0:p1' means
 # (which properties they are, including how to read and write them).
@@ -54,14 +55,18 @@ PARSER_DEFAULT = {
     'internal': [SUPPORT, DIST],  # ((x:y)support:dist);
 }
 
-# This part is only used to read the old-fashioned int formats.
+# This part is used for parsers referred by name (or old-fashioned integers).
+
 NAME_REQ = dict(NAME, req=True)  # value required
 DIST_REQ = dict(DIST, req=True)
 SUPPORT_REQ = dict(SUPPORT, req=True)
+
 EMPTY = {'pname': '',
          'read': lambda x: error(f'parser expected empty field but got: {x}'),
          'write': lambda x: ''}
-INT_PARSERS = {  # parsers corresponding to old-style integers
+
+PARSERS = {  # predefined parsers
+    None: PARSER_DEFAULT,
     0:   {'leaf': [NAME,     DIST],     'internal': [SUPPORT,     DIST]},
     1:   {'leaf': [NAME,     DIST],     'internal': [NAME,        DIST]},
     2:   {'leaf': [NAME_REQ, DIST_REQ], 'internal': [SUPPORT_REQ, DIST_REQ]},
@@ -73,10 +78,14 @@ INT_PARSERS = {  # parsers corresponding to old-style integers
     8:   {'leaf': [NAME_REQ, EMPTY],    'internal': [NAME_REQ,    EMPTY]},
     9:   {'leaf': [NAME_REQ, EMPTY],    'internal': [EMPTY,       EMPTY]},
     100: {'leaf': [EMPTY,    EMPTY],    'internal': [EMPTY,       EMPTY]},
+    'name':         {'leaf': [NAME, DIST], 'internal': [NAME,         DIST]},
+    'support':      {'leaf': [NAME, DIST], 'internal': [SUPPORT,      DIST]},
+    'multisupport': {'leaf': [NAME, DIST], 'internal': [MULTISUPPORT, DIST]},
 }
 
-def make_parser(number=1, name='%s', dist='%g', support='%g'):
-    """Return "int" parser changing the format of name, dist or support."""
+def make_parser(parser=None, name='%s', dist='%g', support='%g'):
+    """Return parser changing the format of properties name, dist or support."""
+    # Auxiliary function to return modified property dicts.
     def copy(props):
         p0, p1 = props[0].copy(), props[1].copy()  # so the changes are local
         for p in [p0, p1]:  # change the writer functions
@@ -88,7 +97,7 @@ def make_parser(number=1, name='%s', dist='%g', support='%g'):
                 p['write'] = lambda x: support % float(x)  # etc
         return [p0, p1]
 
-    parser = INT_PARSERS[number]
+    parser = parser if type(parser) is dict else PARSERS[parser]
     return {'leaf': copy(parser['leaf']), 'internal': copy(parser['internal'])}
 
 
@@ -113,7 +122,7 @@ def prop_repr(prop):
 
 def content_repr(node, props=None, parser=None):
     """Return content of a node as represented in newick format."""
-    parser = parser or PARSER_DEFAULT
+    parser = parser if type(parser) is dict else PARSERS[parser]
     prop0, prop1 = parser['leaf' if node.is_leaf else 'internal']
 
     # Shortcuts.
@@ -134,13 +143,12 @@ def content_repr(node, props=None, parser=None):
             (f'[&&NHX:{pairs_str}]' if pairs_str else ''))  # [&&NHX:p2=x:p3=y]
 
 
-def get_props(content, is_leaf, parser=None):
-    """Return the properties from the content (as a newick) of a node.
+def read_props(str text, long pos, is_leaf, dict parser, check_req):
+    """Return the properties from the content of a node, and where it ends.
 
     Example (for the default format of a leaf node):
       'abc:123[&&NHX:x=foo]'  ->  {'name': 'abc', 'dist': 123, 'x': 'foo'}
     """
-    parser = parser or PARSER_DEFAULT
     prop0, prop1 = parser['leaf' if is_leaf else 'internal']
 
     # Shortcuts.
@@ -149,37 +157,38 @@ def get_props(content, is_leaf, parser=None):
 
     props = {}  # will contain the properties extracted from the content string
 
-    p0_str, pos = read_content(content, 0, endings=':[')
+    p0_str, pos = read_content(text, pos, endings=':[,);')
 
     try:
-        assert p0_str or not p0_req, 'missing required value'
+        assert not check_req or not p0_req or p0_str, 'missing required value'
         if p0_str:
             props[p0_name] = p0_read(p0_str)
     except (AssertionError, ValueError) as e:
-        raise NewickError('parsing 1st position of %r: %s' % (content, e))
+        raise NewickError('parsing %r: %s' % (p0_str, e))
 
     try:
-        if pos < len(content) and content[pos] == ':':
-            pos = skip_spaces_and_comments(content, pos+1)
-            p1_str, pos = read_content(content, pos, endings='[ ')
+        if pos < len(text) and text[pos] == ':':
+            pos = skip_spaces_and_comments(text, pos+1)
+            p1_str, pos = read_content(text, pos, endings='[ ,);')
             props[p1_name] = p1_read(p1_str)
-        elif p1_req:
+        elif check_req and p1_req:
             raise AssertionError('missing required value')
     except (AssertionError, ValueError) as e:
-        raise NewickError('parsing 2nd position of %r: %s' % (content, e))
+        raise NewickError('parsing %r: %s' % (p1_str, e))
 
-    pos = skip_spaces_and_comments(content, pos)
+    pos = skip_spaces_and_comments(text, pos)
 
-    if pos < len(content) and content[pos] == '[':
-        pos_end = content.find(']', pos+1)
-        props.update(get_extended_props(content[pos+1:pos_end]))
-    elif pos < len(content):
-        raise NewickError('malformed content: %s' % repr_short(content))
+    if text[pos] == '[':  # this can't be a comment since we just skipped those
+        start = pos + 1
+        pos = text.find(']', start)
+        assert pos >= 0, 'unfinished extended props'
+        props.update(get_extended_props(text[start:pos]))
+        pos = skip_spaces_and_comments(text, pos + 1)  # after the "]"
 
-    return props
+    return props, pos
 
 
-def get_extended_props(text):
+def get_extended_props(str text):
     """Return a dict with the properties extracted from the text in NHX format.
 
     Example: '&&NHX:x=foo:y=bar'  ->  {'x': 'foo', 'y': 'bar'}
@@ -205,58 +214,56 @@ def load(fp, parser=None):
     return loads(fp.read().strip(), parser)
 
 
-def loads(tree_text, parser=None, tree_class=Tree):
+def loads(str text, parser=None, tree_class=Tree):
     """Return tree from its newick representation."""
-    assert type(tree_text) == str, 'newick is not a string'
+    try:
+        assert text.endswith(';'), 'text ends with no ";"'
 
-    if not tree_text.endswith(';'):
-        raise NewickError('text ends with no ";"')
+        parser = parser if type(parser) is dict else PARSERS[parser]
 
-    if type(parser) == int:  # parser is an integer? (old-style/shortcut)
-        parser = INT_PARSERS[parser]  # substitute it for the actual parser
+        tree, pos = read_node(text, 0, parser, tree_class, check_req=False)
+        # We set check_req=False because the formats requiring certain
+        # fields mean it for all nodes but the root.
 
-    if tree_text[0] == '(':
-        nodes, pos = read_nodes(tree_text, parser, 0, tree_class)
-    else:
-        nodes, pos = [], 0
+        assert pos == len(text) - 1, f'root node ends prematurely at {pos}'
 
-    content, pos = read_content(tree_text, pos)
-    if pos != len(tree_text) - 1:
-        raise NewickError(f'root node ends at position {pos}, before tree ends')
+        return tree
 
-    props = get_props(content, not nodes, parser) if content else {}
-
-    return tree_class(props, nodes)
+    except AssertionError as e:
+        raise NewickError(str(e))
 
 
-def read_nodes(nodes_text, parser, long pos=0, tree_class=Tree):
+def read_node(str text, long pos, dict parser, tree_class=Tree, check_req=True):
+    """Return a node and the position in the text where it ends."""
+    pos = skip_spaces_and_comments(text, pos)
+
+    if text[pos] == '(':  # node has children
+        children, pos = read_nodes(text, pos, parser, tree_class)
+    else:  # node is a leaf
+        children = []
+
+    props, pos = read_props(text, pos, not children, parser, check_req)
+
+    return tree_class(props, children), pos
+
+
+def read_nodes(str text, long pos, dict parser, tree_class=Tree):
     """Return a list of nodes and the position in the text where they end."""
-    # nodes_text looks like '(a,b,c)', where any element can be a list of nodes
-    if nodes_text[pos] != '(':
-        raise NewickError('nodes text starts with no "("')
-
+    # text looks like '(a,b,c)', where any element can be a list of nodes
     nodes = []
-    while nodes_text[pos] != ')':
-        pos += 1
-        if pos >= len(nodes_text):
-            raise NewickError('nodes text ends missing a matching ")"')
+    while pos < len(text) and text[pos] != ')':
+        pos += 1  # advance from the separator: "(" or ","
 
-        pos = skip_spaces_and_comments(nodes_text, pos)
+        node, pos = read_node(text, pos, parser, tree_class)
 
-        if nodes_text[pos] == '(':  # this element is a list of nodes
-            children, pos = read_nodes(nodes_text, parser, pos, tree_class)
-        else:  # this element is a leaf
-            children = []
+        nodes.append(node)
 
-        content, pos = read_content(nodes_text, pos)
+    assert pos < len(text), 'nodes text ends missing a matching ")"'
 
-        nodes.append(tree_class(get_props(content, not children, parser),
-                                children))
-
-    return nodes, pos+1
+    return nodes, pos+1  # it is +1 to advance from the closing ")"
 
 
-def skip_spaces_and_comments(text, long pos):
+def skip_spaces_and_comments(str text, long pos):
     """Return position in text after pos and all whitespaces and comments."""
     # text = '...  [this is a comment] node1...'
     #            ^-- pos               ^-- pos (returned)
@@ -267,9 +274,21 @@ def skip_spaces_and_comments(text, long pos):
                 return pos
             else:
                 pos = text.find(']', pos+1)  # skip comment
-                if pos < 0:
-                    raise NewickError(f'unfinished comment at position {start}')
+                assert pos >= 0, f'unfinished comment at position {start}'
         pos += 1  # skip whitespace and comment endings
+
+    return pos
+
+
+def skip_content(str text, long pos, endings=',);'):
+    """Return the position where the content ends."""
+    pos = skip_spaces_and_comments(text, pos)
+
+    if pos < len(text) and text[pos] in ["'", '"']:
+        pos = skip_quoted_name(text, pos)
+
+    while pos < len(text) and text[pos] not in endings:
+        pos += 1
 
     return pos
 
@@ -279,15 +298,7 @@ def read_content(str text, long pos, endings=',);'):
     # text = '...(node_1:0.5[&&NHX:p=a],...'  ->  'node_1:0.5[&&NHX:p=a]'
     #             ^-- pos              ^-- pos (returned)
     start = pos
-
-    pos = skip_spaces_and_comments(text, pos)
-
-    if pos < len(text) and text[pos] in ["'", '"']:
-        pos = skip_quoted_name(text, pos)
-
-    while pos < len(text) and text[pos] not in endings:
-        pos += 1
-
+    pos = skip_content(text, pos, endings)
     return text[start:pos], pos
 
 
@@ -295,9 +306,6 @@ def skip_quoted_name(str text, long pos):
     """Return the position where a quoted name ends."""
     # text = "... 'node ''2'' in tree' ..."
     #             ^-- pos             ^-- pos (returned)
-    if pos >= len(text) or text[pos] not in ["'", '"']:
-        raise NewickError(f'text at position {pos} does not start with quote')
-
     start = pos
     q = text[start]  # quoting character (can be ' or ")
 
