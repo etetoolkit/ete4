@@ -720,16 +720,12 @@ If it returns just one element (a decoration or a dictionary
 representing a style), it is intepreted as a list of only one element
 (itself).
 
-Instead of returning a list, we can also *yield* elements, that is,
-``draw_node`` would become a Python iterator. This syntax is the
-cleanest and this way is the most efficient of all, so we will use it
-in the following examples.
-
-.. TODO: Add link to doc on python iterators.
-
-
-Combining styles and faces
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Instead of returning a list, we can also `yield
+<https://docs.python.org/3/reference/expressions.html#yieldexpr>`_
+elements, that is, ``draw_node`` would become a `python generator
+<https://peps.python.org/pep-0255/>`_. This syntax is the cleanest and
+this way is the most efficient of all, so we will use it in the
+following examples.
 
 Let's see an example combining styles and faces, for both the tree
 (with ``draw_tree``) and the nodes (with ``draw_node``)::
