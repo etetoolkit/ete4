@@ -74,7 +74,7 @@ To start the visualization of a tree, we can use the :func:`explore
 
   t.explore(...)
 
-If we run it from the Python console, in addition to opening a web
+If we run it from the python console, in addition to opening a web
 browser session, the call returns immediately and we can continue
 working with the tree in the console.
 
@@ -232,7 +232,7 @@ Expression search
 """""""""""""""""
 
 When prefixing our text with ``/e`` (the *eval command*), we can use a
-quite general Python expression to search for nodes. This is the most
+quite general python expression to search for nodes. This is the most
 powerful search method available (and the most complex to use).
 
 The expression will be evaluated for every node, and will select those
