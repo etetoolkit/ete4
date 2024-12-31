@@ -8,7 +8,7 @@ import math
 from . import text_viz
 from . import operations as ops
 from .. import utils
-from ..parser import newick, ete_format
+from ..parser import newick, ete_format, indent
 
 
 class TreeError(Exception):
@@ -58,36 +58,30 @@ cdef class Tree:
         else:  # from newick or ete format
             assert not children, 'init from parsed content cannot have children'
 
-            assert (type(parser) is dict or
-                    parser in newick.PARSERS or
-                    parser in [None, 'newick', 'ete', 'auto']), 'bad parser'
+            valid_parser = (type(parser) is dict or
+                            parser in newick.PARSERS or
+                            parser in [None, 'auto', 'newick', 'ete', 'indent'])
+            assert valid_parser, f'bad parser: {parser}'
 
-            data = data.strip()
+            data = data.lstrip('\n').rstrip()
 
             if parser is None or parser == 'auto':
                 guess_format = lambda x: 'newick'  # TODO
                 parser = guess_format(data)
 
-            if parser == 'newick':
-                self.init_from_newick(data)
-            elif type(parser) == dict:
-                self.init_from_newick(data, parser)
+            if type(parser) == dict:
+                tree = newick.loads(data, parser, self.__class__)
+            elif parser == 'newick':
+                tree = newick.loads(data, None, self.__class__)
             elif parser in newick.PARSERS:
-                self.init_from_newick(data, newick.PARSERS[parser])
+                tree = newick.loads(data, newick.PARSERS[parser], self.__class__)
             elif parser == 'ete':
-                self.init_from_ete(data)
+                tree = ete_format.loads(data)
+            elif parser == 'indent':
+                tree = indent.loads(data)
 
-    def init_from_newick(self, data, parser=None):
-        tree = newick.loads(data, parser, self.__class__)
-        self.children = tree.children
-        self.props = tree.props
-
-    def init_from_ete(self, data):
-        t = ete_format.loads(data)
-        self.name = t.name
-        self.dist = t.dist
-        self.support = t.support
-        self.children = t.children
+            self.props = tree.props
+            self.children = tree.children
 
     @property
     def name(self):

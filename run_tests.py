@@ -15,7 +15,8 @@ tests = {
         'test_tree.py',
         'test_ncbiquery.py', 'test_gtdbquery.py',
         'test_interop.py', 'test_phylotree.py',
-        'test_nexus.py', 'test_treematcher.py',
+        'test_nexus.py', 'test_indent.py',
+        'test_treematcher.py',
         'test_seqgroup.py', 'test_treediff.py',
         'test_orthologs_group_delineation.py'],
     'interactive': [

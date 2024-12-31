@@ -4,7 +4,7 @@ from .core import operations, text_viz
 
 from .core.seqgroup import SeqGroup
 
-from .parser import newick, ete_format, nexus
+from .parser import newick, ete_format, nexus, indent
 
 from .config import (ETE_DATA_HOME, ETE_CONFIG_HOME, ETE_CACHE_HOME,
                      update_ete_data)
