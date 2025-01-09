@@ -39,7 +39,7 @@ def color(string, color):
 
 
 def clear_color(string):
-    return re.sub("\\033\[[^m]+m", "", string)
+    return re.sub("\\033\\[[^m]+m", "", string)
 
 
 def print_table(items, header=None, wrap=True, max_col_width=20,
