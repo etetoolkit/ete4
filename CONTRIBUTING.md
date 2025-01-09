@@ -8,7 +8,7 @@ more frequent additions and fixes.
 
 We try to have new development in feature-specific branches or
 forks. We merge pull requests after reviewing changes and confirming
-that all tests are passed.
+that all tests pass.
 
 We ask for new contributions to include their own tests that checks
 the correct behavior of the new code.
