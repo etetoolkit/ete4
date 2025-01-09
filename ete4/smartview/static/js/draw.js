@@ -867,13 +867,14 @@ function create_text(box, anchor, text, fs_max, rotation,
 
 function create_header(x, text, fs_max, rotation, tl, zx, zy, style="") {
     if (view.shape !== "rectangular")
-        return null;
+        return null;  // we only put headers in rectangular mode
 
     const px = zx * (x - tl.x),
           py = Math.max(50, - zy * tl.y);
 
     const g = create_svg_element("g");
 
+    // Put a white rectangle on the background of the header.
     g.appendChild(create_svg_element("rect", {
         "x": px,
         "y": 0,
@@ -882,6 +883,7 @@ function create_header(x, text, fs_max, rotation, tl, zx, zy, style="") {
         "fill": "white",
     }));
 
+    // Add a line separating the header from the content below.
     const line = create_svg_element("line", {
         "x1": px, "y1": py + fs_max,
         "x2": div_aligned.offsetWidth, "y2": py + fs_max,
@@ -893,6 +895,7 @@ function create_header(x, text, fs_max, rotation, tl, zx, zy, style="") {
 
     g.appendChild(line);
 
+    // Add the text (the header itself).
     const t = create_svg_element("text", {
         "x": px,
         "y": py,
