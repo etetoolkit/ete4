@@ -53,9 +53,13 @@ class Face:
 
 
 class EvalTextFace(Face):
-    """A text that results from evaluating an expression on the node."""
+    """A text that results from evaluating an expression on the node.
 
-    def __init__(self, expression, fs_min=2, fs_max=16, rotation=0, style=None):
+    The style can be a string which refers to the style the gui is
+    going to assign it, or a dictionary with svg attributes for text.
+    """
+
+    def __init__(self, expression, fs_min=2, fs_max=16, rotation=0, style=''):
         self.code = (expression if type(expression) != str else
                      compile(expression, '<string>', 'eval'))
         self.style = style or ('text_' + expression)
@@ -98,7 +102,7 @@ class EvalTextFace(Face):
 class TextFace(EvalTextFace):
     """A fixed text."""
 
-    def __init__(self, text, fs_min=2, fs_max=16, rotation=0, style=None):
+    def __init__(self, text, fs_min=2, fs_max=16, rotation=0, style=''):
         expression = '""' if not text else '"%s"' % text.replace('"', r'\"')
         super().__init__(expression, fs_min, fs_max, rotation, style)
 
@@ -106,7 +110,7 @@ class TextFace(EvalTextFace):
 class PropFace(EvalTextFace):
     """A text showing the given property, and optionally a special format."""
 
-    def __init__(self, prop, fmt='%s', fs_min=2, fs_max=16, rotation=0, style=None):
+    def __init__(self, prop, fmt='%s', fs_min=2, fs_max=16, rotation=0, style=''):
         pexp = prop if prop in ['name', 'dist', 'support'] else f'p["{prop}"]'
         expression = f'"{fmt}" % {pexp} if "{prop}" in p else ""'
         super().__init__(expression, fs_min, fs_max, rotation, style)
@@ -216,9 +220,9 @@ def safer_eval(code, context):
 class CircleFace(Face):
     """A circle."""
 
-    def __init__(self, rmax=None, style=None):
+    def __init__(self, rmax=None, style=''):
         self.rmax = rmax  # maximum radius in pixels
-        self.style = style or ''
+        self.style = style
 
     def draw(self, nodes, size, collapsed, zoom=(1, 1), ax_ay=(0, 0), r=1):
         dx, dy = size
@@ -242,10 +246,10 @@ class CircleFace(Face):
 class PolygonFace(Face):
     """A polygon."""
 
-    def __init__(self, rmax=None, shape=3, style=None):
+    def __init__(self, rmax=None, shape=3, style=''):
         self.shape = shape  # name of the shape or number of edges
         self.rmax = rmax  # maximum "radius" in pixels
-        self.style = style or ''
+        self.style = style
 
     def draw(self, nodes, size, collapsed, zoom=(1, 1), ax_ay=(0, 0), r=1):
         dx, dy = size
@@ -315,44 +319,44 @@ class BoxedFace(Face):
 class BoxFace(BoxedFace):
     """A box (with optionally a text inside)."""
 
-    def __init__(self, wmax, hmax=None, style=None, text=None):
+    def __init__(self, wmax, hmax=None, style='', text=None):
         super().__init__(wmax, hmax, text)
-        self.drawing_fn = lambda box: gr.draw_box(box, style or '')
+        self.drawing_fn = lambda box: gr.draw_box(box, style)
 
 
 class RectFace(BoxedFace):
     """A rectangle (with optionally a text inside)."""
 
-    def __init__(self, wmax, hmax=None, style=None, text=None):
+    def __init__(self, wmax, hmax=None, style='', text=None):
         super().__init__(wmax, hmax, text)
-        self.drawing_fn = lambda box: gr.draw_rect(box, style or '')
+        self.drawing_fn = lambda box: gr.draw_rect(box, style)
 
 
 class ImageFace(BoxedFace):
     """An image (with optionally a text inside)."""
 
-    def __init__(self, path, wmax, hmax=None, style=None, text=None):
+    def __init__(self, path, wmax, hmax=None, style='', text=None):
         super().__init__(wmax, hmax, text)
         assert os.path.exists(path), f'missing image at {path}'
         ext = os.path.splitext(path)[1][1:].lower()  # extension
         assert ext in ['png', 'jpeg', 'jpg', 'svg'], f'invalid type: {path}'
         href = ('data:image/' + ext + ';base64,' +
                 b64encode(open(path, 'rb').read()).decode('utf8'))
-        self.drawing_fn = lambda box: gr.draw_image(box, href, style or '');
+        self.drawing_fn = lambda box: gr.draw_image(box, href, style);
 
 
 class SeqFace(Face):
     """A sequence of nucleotides or amino acids."""
 
     def __init__(self, seq, seqtype='aa', poswidth=15, draw_text=True,
-                 hmax=None, fs_max=15, style=None, render='auto'):
+                 hmax=None, fs_max=15, style='', render='auto'):
         self.seq = ''.join(x for x in seq)  # in case it was a list
         self.seqtype = seqtype
         self.poswidth = poswidth  # width in pixels of each nucleotide/aa
         self.draw_text = draw_text
         self.hmax = hmax  # maximum height in pixels
         self.fs_max = fs_max
-        self.style = style or ''
+        self.style = style
         self.render = render
 
     def draw(self, nodes, size, collapsed, zoom, ax_ay, r):
