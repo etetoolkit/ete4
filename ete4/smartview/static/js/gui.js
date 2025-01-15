@@ -35,7 +35,7 @@ const view = {
         key: "(dy, dx, name)",
         reverse: false,
     },
-    upload: () => window.location.href = "upload.html",
+    upload: () => location = "upload.html",
     download: {
         newick: () => download_newick(),
         svg:    () => download_svg(),
@@ -156,7 +156,7 @@ async function main() {
 
         await init_trees();
 
-        await set_query_string_values();
+        set_query_string_values();
 
         init_menus(Object.keys(trees));
 
@@ -166,9 +166,9 @@ async function main() {
 
         await set_consistent_values();
 
-        reset_node_count();
-
         init_events();
+
+        store_node_count();
 
         store_node_properties();
 
@@ -179,9 +179,9 @@ async function main() {
 
         update();
 
-        const sample_trees = [];
         // NOTE: We could add here trees like "GTDB_bact_r95" to have a public
         // server showing the trees but not letting modifications on them.
+        const sample_trees = [];
         view.allow_modifications = !sample_trees.includes(view.tree);
     }
     catch (ex) {
@@ -404,7 +404,7 @@ async function on_tree_change() {
     remove_tags();
     view.tree_size = await api(`/trees/${get_tid()}/size`);
     await set_tree_style();
-    reset_node_count();
+    store_node_count();
     store_node_properties();
     reset_zoom();
     reset_position();
@@ -412,7 +412,7 @@ async function on_tree_change() {
     draw_minimap();
     update();
 
-    const sample_trees = ["ncbi", "GTDB_bact_r95"];  // hardcoded for the moment
+    const sample_trees = [];  // see main()
     view.allow_modifications = !sample_trees.includes(view.tree);
 }
 
@@ -450,9 +450,10 @@ function reset_view() {
 
 
 // Set values that have been given with the query string.
-async function set_query_string_values() {
+// For example, http://[...]/draw?x=1 -> view.tl.x = 1
+function set_query_string_values() {
     const unknown_params = [];
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(location.search);  // "?x=1" -> {x: 1}
 
     for (const [param, value] of params) {
         if (param === "tree")
@@ -514,11 +515,10 @@ function show_minimap(show) {
 }
 
 
-function reset_node_count() {
-    api(`/trees/${get_tid()}/nodecount`).then(n => {
-        view.nnodes = n.nnodes;
-        view.nleaves = n.nleaves;
-    });
+async function store_node_count() {
+    const count = await api(`/trees/${get_tid()}/nodecount`);
+    view.nnodes = count.nnodes;
+    view.nleaves = count.nleaves;
 }
 
 
@@ -577,7 +577,7 @@ function get_url_view(x, y, w, h) {
         x: x, y: y, w: w, h: h,
         tree: view.tree, subtree: view.subtree, shape: view.shape,
     }).toString();
-    return window.location.origin + window.location.pathname + "?" + qs;
+    return location.origin + location.pathname + "?" + qs;
 }
 
 

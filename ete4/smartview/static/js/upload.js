@@ -64,8 +64,7 @@ function show_uploaded_trees(resp) {
             showCancelButton: true,
         }).then(result => {
             if (result.isConfirmed)
-                window.location.href =
-                    "gui.html?tree=" + encodeURIComponent(names[0]);
+                location = "gui.html?tree=" + encodeURIComponent(names[0]);
         });
     else
         Swal.fire({html: "Could not find any tree in file.", icon: "warning"});
