@@ -5,6 +5,14 @@ Different faces can represent different kinds of information in
 different forms. Faces have a drawing function that returns the
 graphic elements that will show the information, and the size they
 occupy (in tree coordinates).
+
+They know how to represent node(s) information, confined to an area of
+a given size. They do it with a method face.draw(nodes, size, ...)
+which returns the graphic elements and the actual size they use
+(which may be smaller than the allocated size).
+
+The sizes are always given in "tree units". The size in pixels is
+always that size multiplied by the zoom.
 """
 
 # Other names that may be better than "face": glyph, chip, infobox,
