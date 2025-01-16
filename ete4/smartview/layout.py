@@ -33,23 +33,23 @@ And the "aliases" part will tell the frontend which styles are referenced.
 Example of a tree style in use::
 
   my_tree_style = {
-     'shape': 'circular',  # or 'rectangular'
-     'radius': 5,
-     'angle-start': -pi/2,
-     'angle-end': pi/2,  # alternatively we can give 'angle-span'
-     'node-height-min': 10,
-     'content-height-min': 5,
-     'collapsed': {'shape': 'outline', 'fill-opacity': 0.8},
-     'show-popup-props': None,  # all defined properties
-     'hide-popup-props': ['support'],  # except support
-     'is-leaf-fn': lambda node: node.level > 4,
-     'box': {'fill': 'green', 'opacity': 0.1, 'stroke': 'blue'},
-     'dot': {'shape': 'hexagon', 'fill': 'red'},
-     'hz-line': {'stroke-width': 2},
-     'vt-line': {'stroke': '#ffff00'},
-     'aliases': {
-         'support': {'fill': 'green'},  # changes the default one
-         'my-leaf': {'fill': 'blue', 'font-weight': 'bold'},
+      'shape': 'circular',  # or 'rectangular'
+      'radius': 5,
+      'angle-start': -180,
+      'angle-end': 180,  # alternatively we can give 'angle-span'
+      'node-height-min': 10,
+      'content-height-min': 5,
+      'collapsed': {'shape': 'outline', 'fill-opacity': 0.8},
+      'show-popup-props': None,  # all defined properties
+      'hide-popup-props': ['support'],  # except support
+      'is-leaf-fn': lambda node: node.level > 4,
+      'box': {'fill': 'green', 'opacity': 0.1, 'stroke': 'blue'},
+      'dot': {'shape': 'hexagon', 'fill': 'red'},
+      'hz-line': {'stroke-width': 2},
+      'vt-line': {'stroke': '#ffff00'},
+      'aliases': {
+          'support': {'fill': 'green'},  # changes the default one
+          'my-leaf': {'fill': 'blue', 'font-weight': 'bold'},
       },
   }
 
