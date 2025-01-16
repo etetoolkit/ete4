@@ -383,3 +383,14 @@ class SeqFace(Face):
                                 self.fs_max, self.style, self.render)]
 
         return graphics, size
+
+
+class LegendFace(Face):
+    """A legend with information about the data we are visualizing."""
+
+    def __init__(self, title, variable, colormap):
+        self.title = title
+        self.variable = variable  # can be "discrete" or "continuous"
+        self.colormap = colormap  # dict {name: color}
+
+    # NOTE: We don't need a special draw() function, we use the info directly.

@@ -283,8 +283,16 @@ function draw(element, items, tl, zoom, replace=true) {
     // The global svg element where all the created svgs will be.
     const g = create_svg_element("g");
 
+    // The legend(s) that there may be.
+    const legends = [];
+
     // Add graphics from items.
     items.forEach(item_as_list => {
+        if (item_as_list[0] === "legend") {  // we deal with these separately
+            legends.push(item_as_list.slice(1));
+            return;
+        }
+
         const item = create_item(item_as_list, tl, zoom, wmax);
         if (item === null) {  // we decided not to draw the element
             ;  // do nothing
@@ -297,6 +305,9 @@ function draw(element, items, tl, zoom, replace=true) {
         }
     });
 
+    // Add legends.
+    add_legends(legends);
+
     // Extra operations that we need for the svgs.
 
     put_nodes_in_background(g);  // so they don't cover other graphics
@@ -306,6 +317,27 @@ function draw(element, items, tl, zoom, replace=true) {
 
     const svg = element.getElementsByTagName("svg")[0];
     svg.appendChild(g);  // add our global g element to the svg
+}
+
+
+function add_legends(legends) {
+    if (legends.length === 0) {
+        div_legend.style.display = "none";  // hide
+        return;
+    }
+
+    let content = "";
+    for (const [title, variable, colormap] of legends) {
+        content += `<div style="text-align: center">${title}</div>`;
+        for (const [name, color] of Object.entries(colormap))
+            content += `<span style="color: ${color}">●</span> ${name}<br />`;
+    }
+    const legend = `<div style="padding: 10px">${content}</div>`;
+
+    if (legend !== div_legend.innerHTML) {
+        div_legend.innerHTML = legend;
+        div_legend.style.display = "";  // show in case it was hidden
+    }
 }
 
 
