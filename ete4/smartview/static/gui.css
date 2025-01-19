@@ -125,6 +125,19 @@
     overflow: hidden;
 }
 
+#div_legend {
+    position: absolute;
+    background: white;
+    resize: both;
+    z-index: 3;
+    width: 300px;
+    overflow-y: auto;
+    border-style: solid;
+    border-color: #CCC;
+    border-width: 2px;
+    border-radius: 4px;
+}
+
 
 /* Minimap-related */
 

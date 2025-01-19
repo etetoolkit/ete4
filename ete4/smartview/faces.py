@@ -383,3 +383,27 @@ class SeqFace(Face):
                                 self.fs_max, self.style, self.render)]
 
         return graphics, size
+
+
+class LegendFace(Face):
+    """A legend with information about the data we are visualizing."""
+
+    def __init__(self, title, variable,
+                 colormap=None, value_range=None, color_range=None):
+        # Do some very basic consistency checks first.
+        if variable == 'discrete':
+            assert colormap and value_range is None and color_range is None, \
+                'discrete variable needs a colormap (and no more)'
+        elif variable == 'continuous':
+            assert value_range and color_range and colormap is None, \
+                'continuous variable needs value and color ranges (and no more)'
+        else:
+            raise ValueError(f'invalid variable value: {variable}')
+
+        self.title = title
+        self.variable = variable  # can be "discrete" or "continuous"
+        self.colormap = colormap  # dict {name: color}
+        self.value_range = value_range  # (min, max)
+        self.color_range = color_range  # (min, max)
+
+    # NOTE: We don't need a special draw() function, we use the info directly.

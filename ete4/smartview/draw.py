@@ -7,7 +7,7 @@ from math import sin, cos, pi, sqrt, atan2
 from ..core import operations as ops
 from .coordinates import Size, Box, make_box, get_xs, get_ys
 from .layout import Decoration, Label, update_style
-from .faces import EvalTextFace, eval_as_str
+from .faces import LegendFace, EvalTextFace, eval_as_str
 from . import graphics as gr
 
 
@@ -43,11 +43,22 @@ def draw(tree, layouts, overrides=None, labels=None,
     yield from drawer_obj.draw()
 
     for deco in decos:
-        if deco.position == 'header':
-            face = deco.face  # which must be a TextFace or similar
+        face = deco.face
+        if deco.position == 'header':  # face must be TextFace or similar
             text = eval_as_str(face.code, tree)
             yield gr.set_panel(deco.column + 1)
             yield gr.draw_header(text, face.fs_max, face.rotation, face.style)
+            # NOTE: We don't use the face.draw() function, which would
+            # draw inside a box. Instead we extract the data and draw by hand.
+        elif type(face) is LegendFace:
+            yield gr.draw_legend(face.title, face.variable, face.colormap,
+                                 face.value_range, face.color_range)
+        else:
+            # TODO: Place things according to the decoration?
+            size = tree.size
+            r = size[0]
+            graphics, size = face.draw([tree], size, [], zoom, (0, 0), r)
+            yield from graphics
 
 
 class Drawer:
