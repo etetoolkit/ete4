@@ -18,7 +18,7 @@ const dragging = {
 
 
 function drag_start(point, element) {
-    if ([div_tree, div_visible_rect].includes(element))
+    if ([div_tree, div_visible_rect, div_legend].includes(element))
         element.style.cursor = "grabbing";
     else if (element === div_aligned)
         element.style.cursor = "ew-resize";
@@ -32,7 +32,7 @@ function drag_stop() {
     if (dragging.element === undefined)
         return;
 
-    if ([div_tree, div_aligned].includes(dragging.element))
+    if ([div_tree, div_aligned, div_legend].includes(dragging.element))
         dragging.element.style.cursor = "auto";
     else if (dragging.element === div_visible_rect)
         dragging.element.style.cursor = "grab";
@@ -47,6 +47,9 @@ function drag_stop() {
 
 
 function drag_move(point) {
+    if (!dragging.element)
+        return;
+
     const movement = {x: point.x - dragging.p_last.x,
                       y: point.y - dragging.p_last.y};
     dragging.p_last = point;
@@ -76,7 +79,15 @@ function drag_move(point) {
             view.aligned.origin = 0;
         }
     }
-    else if (dragging.element) {
+    else if (dragging.element === div_legend) {
+        const x = div_legend.offsetLeft + movement.x;
+        const y = div_legend.offsetTop  + movement.y;
+        const xmax = div_tree.offsetWidth  - div_legend.offsetWidth;
+        const ymax = div_tree.offsetHeight - div_legend.offsetHeight;
+        div_legend.style.left = `${Math.max(0, Math.min(x, xmax))}px`;
+        div_legend.style.top  = `${Math.max(0, Math.min(y, ymax))}px`;
+    }
+    else {
         dragging.moved = true;
 
         const [scale_x, scale_y] = get_drag_scale();

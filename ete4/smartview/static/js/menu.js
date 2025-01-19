@@ -297,6 +297,13 @@ function add_folder_style(menu) {
 
     folder_seq.addBinding(view.array, "padding", {min: 0, max: 1, step: 0.01})
         .on("change", update);
+
+    const folder_legend = folder(folder_style, "legend");
+
+    folder_legend.addBinding(view, "show_legend", {label: "show legend"})
+        .on("change", (ev) => {
+            div_legend.style.visibility = (ev.value ? "visible" : "hidden");
+        });
 }
 
 

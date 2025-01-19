@@ -51,7 +51,8 @@ def draw(tree, layouts, overrides=None, labels=None,
             # NOTE: We don't use the face.draw() function, which would
             # draw inside a box. Instead we extract the data and draw by hand.
         elif type(face) is LegendFace:
-            yield gr.draw_legend(face.title, face.variable, face.colormap)
+            yield gr.draw_legend(face.title, face.variable, face.colormap,
+                                 face.value_range, face.color_range)
         else:
             # TODO: Place things according to the decoration?
             size = tree.size

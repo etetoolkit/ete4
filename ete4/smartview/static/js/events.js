@@ -143,7 +143,12 @@ function on_mousedown(event) {
 
     const point = {x: event.pageX, y: event.pageY};
 
-    if (div_visible_rect.contains(event.target))
+    if (div_legend.contains(event.target)) {
+        // If we click next to the border, it is to resize, not to move.
+        if (point.x < div_legend.offsetLeft + div_legend.offsetWidth - 20)
+            drag_start(point, div_legend);
+    }
+    else if (div_visible_rect.contains(event.target))
         drag_start(point, div_visible_rect);
     else if (div_minimap.contains(event.target))
         move_minimap_view(point);

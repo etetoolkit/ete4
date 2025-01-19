@@ -95,7 +95,7 @@ async function draw_tree() {
     div_tree.style.cursor = "auto";  // show that we finished drawing
 }
 
-// Return number x as a nice string (with approximately n precision digits).
+// Return float x as a nice string (with approximately n precision digits).
 function format_float(x, n=2) {
     if (x < Math.pow(10, -n) || x > Math.pow(10, n))
         return x.toExponential(n);
@@ -306,7 +306,8 @@ function draw(element, items, tl, zoom, replace=true) {
     });
 
     // Add legends.
-    add_legends(legends);
+    if (element !== div_minimap)  // but no legends in the minimap
+        add_legends(legends);
 
     // Extra operations that we need for the svgs.
 
@@ -321,23 +322,51 @@ function draw(element, items, tl, zoom, replace=true) {
 
 
 function add_legends(legends) {
-    if (legends.length === 0) {
-        div_legend.style.display = "none";  // hide
+    if (legends.length === 0 || !view.show_legend) {  // nothing to show?
+        div_legend.style.visibility = "hidden";  // hide
         return;
     }
 
-    let content = "";
-    for (const [title, variable, colormap] of legends) {
-        content += `<div style="text-align: center">${title}</div>`;
-        for (const [name, color] of Object.entries(colormap))
-            content += `<span style="color: ${color}">●</span> ${name}<br />`;
-    }
-    const legend = `<div style="padding: 10px">${content}</div>`;
+    const hr = '<hr style="margin: 10px; background-color: gray">';
 
-    if (legend !== div_legend.innerHTML) {
+    const legend = ('<div style="padding: 10px; font-size: 0.8rem">' +
+                    legends.map(legend2html).join(hr) +  // where the action is
+                    '</div>');
+
+    if (legend !== div_legend.innerHTML) {  // update only if needed
         div_legend.innerHTML = legend;
-        div_legend.style.display = "";  // show in case it was hidden
+        div_legend.style.visibility = "visible";  // show in case it was hidden
     }
+}
+
+function legend2html(legend) {
+    const [title, variable, colormap, vrange, crange] = legend;
+
+    const header = `<div style="text-align: center;
+        font-weight: bold; font-family: sans">${title}</div>`;
+
+    if (variable === "discrete") {  // use color map
+        const lines = Object.entries(colormap).map(([name, color]) =>
+            `<span style="color: ${color}">●</span> ${name}<br>`);
+        return header + lines.join("\n");
+    }
+    else {  // variable continuous: use value range and color range
+        const [vmin, vmax] = vrange.map(format_number);  // values
+        const [cmin, cmax] = crange;  // colors
+        return header +
+            `${vmax}
+             <span style="display: block;
+                 min-width: 20px; max-width: 50px; min-height: 100px;
+                 background-image:linear-gradient(${cmin}, ${cmax})">
+             </span>
+             ${vmin}`;
+    }
+}
+
+// Return number (int or float) looking relatively good for the legend.
+function format_number(x) {
+    const s = x.toString();
+    return s.length < 5 ? s : x.toPrecision(3);
 }
 
 

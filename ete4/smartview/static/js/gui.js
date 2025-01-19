@@ -114,6 +114,7 @@ const view = {
     },
     array: {padding: 0.0},
     font_sizes: {auto: true, scroller: undefined, fixed: 10},
+    show_legend: true,
 
     // minimap
     minimap: {
@@ -152,6 +153,8 @@ const trees = {};  // will translate names to ids (trees[tree_name] = tree_id)
 
 async function main() {
     try {
+        reset_legend();
+
         save_default_rules();
 
         await init_trees();
@@ -187,6 +190,14 @@ async function main() {
     catch (ex) {
         Swal.fire({html: ex.message, icon: "error"});
     }
+}
+
+
+// Put the legend div hidden and located to the right.
+function reset_legend() {
+    div_legend.style.visibility = "hidden";
+    div_legend.style.left = `${div_tree.offsetWidth - 308}px`;
+    div_legend.style.top = "8px";
 }
 
 
@@ -399,6 +410,7 @@ async function on_tree_change() {
         return;  // we haven't initialized yet!
 
     div_tree.style.cursor = "wait";
+    reset_legend();
     remove_searches();
     remove_collapsed();
     remove_tags();
