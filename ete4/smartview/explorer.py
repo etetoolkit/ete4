@@ -29,7 +29,7 @@ from bottle import (
 DIR_BIN = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(DIR_BIN))  # so we can import ete w/o install
 
-from ete4 import newick, nexus, operations as ops, treematcher as tm
+from ete4 import newick, nexus, indent, operations as ops, treematcher as tm
 from . import draw
 from .layout import Layout, BASIC_LAYOUT, update_style
 
@@ -568,16 +568,16 @@ def get_topological_search(pattern):
 def add_trees_from_request():
     """Add trees to the global var g_trees and return a dict of {name: id}."""
     try:
-        if request.content_type.startswith('application/json'):
+        if request.content_type.startswith('application/json'):  # a POST
             trees = [req_json()]  # we have only one tree
-            parser = newick.PARSER_DEFAULT
-        else:
+            parser = 'name'
+        else:  # the request comes from a form (e.g., from upload.html)
             trees = get_trees_from_form()
-            parser = get_parser(request.forms['internal'])
+            parser = request.forms['parser']
 
         names = {}
         for tree in trees:
-            t = newick.loads(tree['newick'], parser)
+            t = loads(tree['newick'], parser)
             ops.update_sizes_all(t)
             name = tree['name'].replace(',', '_')  # "," is used for subtrees
             names[name] = name  # tree ids are already equal to their names...
@@ -591,10 +591,14 @@ def add_trees_from_request():
         abort(400, f'malformed tree - {e}')
 
 
-def get_parser(internal):
-    """Return parser given the internal nodes main property interpretation."""
-    p = {'name': newick.NAME, 'support': newick.SUPPORT}[internal]  # (()p:d);
-    return dict(newick.PARSER_DEFAULT, internal=[p, newick.DIST])
+def loads(tree_text, parser):
+    """Return tree loaded from the text using the given parser."""
+    if parser in ['name', 'support']:
+        return newick.loads(tree_text, parser)
+    elif parser == 'nexus':
+        return nexus.loads(tree_text)
+    elif parser == 'indent':
+        return indent.loads(tree_text)
 
 
 def get_trees_from_form():
@@ -773,18 +777,18 @@ def stop_server():
 if __name__ == '__main__':
     parser = ArgumentParser(description=__doc__, formatter_class=fmt)
     add = parser.add_argument  # shortcut
-    add('FILE', help='file with the newick tree representation')
-    add('-i', '--internal', choices=['name', 'support'], default='support',
-        help='how to interpret the content of internal nodes')
-    add('-c', '--compress', action='store_true', help='send compressed data')
-    add('-p', '--port', type=int, help='server port number')
+    add('FILE', help='file with the tree representation')
+    add('--parser', choices=['name', 'support', 'indent'], default='support',
+        help='tree is newick with name/support in internal nodes, or indented')
+    add('--compress', action='store_true', help='send compressed data')
+    add('--port', type=int, help='server port number')
     add('-v', '--verbose', action='store_true', help='be verbose')
     args = parser.parse_args()
 
     try:
         # Read tree(s) and add them to g_trees.
         for tree in get_trees_from_file(args.FILE):
-            t = newick.loads(tree['newick'], get_parser(args.internal))
+            t = loads(tree['newick'], args.parser)
             ops.update_sizes_all(t)
             name = tree['name'].replace(',', '_')  # "," is used for subtrees
             g_trees[name] = t

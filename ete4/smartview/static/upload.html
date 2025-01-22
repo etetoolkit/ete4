@@ -12,15 +12,19 @@
 
 <div class="centered">
 
-<h1>Tree Explorer</h1>
+<h1>ETE Tree Explorer</h1>
 
-<p>This is an online tool for exploring trees. It is mainly used to explore
-<a href="https://en.wikipedia.org/wiki/Phylogenetic_tree">phylogenetic trees</a>,
-but it can be used for any tree as long as it is written in the
-<a href="https://en.wikipedia.org/wiki/Newick_format">newick format</a>.</p>
+<p>This is a tool for exploring trees. It is mainly used to explore
+<a href="https://en.wikipedia.org/wiki/Phylogenetic_tree">phylogenetic
+trees</a>, but it can be used for any kind of tree.</p>
 
 <p>You can <a href="/">explore the pre-loaded trees</a>, or add your
 own trees for exploration by uploading them from this page.</p>
+
+<p>The tree can be written in
+the <a href="https://en.wikipedia.org/wiki/Newick_format">newick
+format</a> or a depth-indented listing (like the output of
+the <code>tree</code> program).</p>
 
 <p>When using the interactive gui for exploration, press <kbd>F1</kbd>
 or the help button in the viewer for instructions.</p>
@@ -33,8 +37,8 @@ or the help button in the viewer for instructions.</p>
     From string (<a href="#" onclick="load_example(); return false;">load
     an example</a>)
   </label><br>
-  <textarea id="input_newick_string" rows="8" cols="80"
-    placeholder="Newick representation of the tree" disabled></textarea>
+  <textarea id="input_string" rows="8" cols="80"
+    placeholder="Newick or indented representation of the tree" disabled></textarea>
   </div>
 
   <div>
@@ -46,20 +50,27 @@ or the help button in the viewer for instructions.</p>
   </fieldset>
 
   <div>
-  <fieldset><legend>How to interpret content of internal nodes</legend>
-  <div>
-  <input type="radio" id="radio_name" name="internal" value="name" checked>
-  <label for="radio_name">
-    As node name &mdash; <tt>((name:dist)name:dist);</tt>
-  </label>
-  </div>
+  <fieldset><legend>How to parse</legend>
+    <div>
+    <input type="radio" id="radio_name" name="parser" value="name" checked>
+    <label for="radio_name">
+      <tt>((name:dist)<b>name</b>:dist);</tt> (newick with internal node name)
+    </label>
+    </div>
 
-  <div>
-  <input type="radio" id="radio_support" name="internal" value="support">
-  <label for="radio_support">
-    As node support &mdash; <tt>((name:dist)support:dist);</tt>
-  </label>
-  </div>
+    <div>
+    <input type="radio" id="radio_support" name="parser" value="support">
+    <label for="radio_support">
+      <tt>((name:dist)<b>support</b>:dist);</tt> (newick with internal node support)
+    </label>
+    </div>
+
+    <div>
+    <input type="radio" id="radio_indent" name="parser" value="indent">
+    <label for="radio_indent">
+      Depth-indented listing
+    </label>
+    </div>
   </fieldset>
   </div>
 
