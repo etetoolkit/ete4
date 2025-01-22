@@ -57,7 +57,7 @@ def nice_html(content, title='Tree Explorer'):
     return f"""
 <!DOCTYPE html>
 <html><head><title>{title}</title>
-<link rel="icon" type="image/png" href="/static/icon.png">
+<link rel="icon" type="image/png" href="/static/images/icon.png">
 <link rel="stylesheet" href="/static/upload.css"></head>
 <body><div class="centered">{content}</div></body></html>"""
 
