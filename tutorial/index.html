@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tutorial &#8212; ETE Toolkit 4.0.0-beta3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=9c56ea15"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The Tree structure" href="tutorial_trees.html" />
+    <link rel="prev" title="About" href="../about.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_trees.html">The Tree structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#trees">Trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#reading-and-writing-newick-trees">Reading and writing newick trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#understanding-ete-trees">Understanding ETE trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#basic-tree-attributes">Basic tree attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#browsing-trees-traversing">Browsing trees (traversing)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#checking-the-monophyly-of-properties-within-a-tree">Checking the monophyly of properties within a tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#caching-tree-content-for-faster-lookup-operations">Caching tree content for faster lookup operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#node-annotation">Node annotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#comparing-trees">Comparing trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#modifying-tree-topology">Modifying tree topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#pruning-trees">Pruning trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#concatenating-trees">Concatenating trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#copying-duplicating-trees">Copying (duplicating) trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#solving-multifurcations">Solving multifurcations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#tree-rooting">Tree rooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#working-with-branch-distances">Working with branch distances</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html#getting-midpoint-outgroup">Getting midpoint outgroup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_phylogeny.html">Phylogenetic trees</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html#linking-phylogenetic-trees-with-multiple-sequence-alignments">Linking phylogenetic trees with multiple sequence alignments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html#visualization-of-phylogenetic-trees">Visualization of phylogenetic trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html#adding-taxonomic-information">Adding taxonomic information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html#detecting-evolutionary-events">Detecting evolutionary events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html#relative-dating-of-phylogenetic-nodes">Relative dating of phylogenetic nodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html#automatic-rooting-outgroup-detection">Automatic rooting (outgroup detection)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html#working-with-duplicated-gene-families">Working with duplicated gene families</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_smartview.html">Tree drawing and exploration (web)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_smartview.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_smartview.html#launching-the-explorer">Launching the explorer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_smartview.html#customizing-the-visualization">Customizing the visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_smartview.html#combining-styles-and-decorations">Combining styles and decorations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_treeview.html">Tree drawing (Qt)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treeview.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treeview.html#interactive-visualization-of-trees">Interactive visualization of trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treeview.html#rendering-trees-as-images">Rendering trees as images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treeview.html#customizing-the-aspect-of-trees">Customizing the aspect of trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treeview.html#combining-styles-faces-and-layouts">Combining styles, faces and layouts</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_taxonomy.html">Taxonomy databases</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html#differences-between-ncbi-and-gtdb-taxonomies-in-ete4">Differences between NCBI and GTDB taxonomies in ETE4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html#setting-up-local-copies-of-the-ncbi-and-gtdb-taxonomy-databases">Setting up local copies of the NCBI and GTDB taxonomy databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html#getting-taxid-information">Getting taxid information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html#getting-descendant-taxa">Getting descendant taxa</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html#getting-species-tree-topology">Getting species tree topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html#automatic-tree-annotation-using-ncbi-gtdb-taxonomy">Automatic tree annotation using NCBI/GTDB taxonomy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_treematcher.html">Tree matcher</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treematcher.html#a-simple-example-only-topology">A simple example (only topology)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treematcher.html#a-less-simple-example-with-node-expressions">A less simple example (with node expressions)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treematcher.html#outside-variables">Outside variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treematcher.html#examples-from-the-test-suite">Examples from the test suite</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">ETE Toolkit</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html">The Tree structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html">Phylogenetic trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_smartview.html">Tree drawing and exploration (web)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treeview.html">Tree drawing (Qt)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html">Taxonomy databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treematcher.html">Tree matcher</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../internals/index.html">Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faqs.html">Frequently Asked Questions</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../about.html" title="previous chapter">About</a></li>
+      <li>Next: <a href="tutorial_trees.html" title="next chapter">The Tree structure</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2008 - 2024, The ETE Toolkit Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/tutorial/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

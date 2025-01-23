@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tree drawing and exploration (web) &#8212; ETE Toolkit 4.0.0-beta3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=9c56ea15"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tree drawing (Qt)" href="tutorial_treeview.html" />
+    <link rel="prev" title="Phylogenetic trees" href="tutorial_phylogeny.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tree-drawing-and-exploration-web">
+<h1><a class="toc-backref" href="#id2" role="doc-backlink">Tree drawing and exploration (web)</a><a class="headerlink" href="#tree-drawing-and-exploration-web" title="Link to this heading">¶</a></h1>
+<nav class="contents" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#tree-drawing-and-exploration-web" id="id2">Tree drawing and exploration (web)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#overview" id="id3">Overview</a></p></li>
+<li><p><a class="reference internal" href="#launching-the-explorer" id="id4">Launching the explorer</a></p>
+<ul>
+<li><p><a class="reference internal" href="#standalone-scripts" id="id5">Standalone scripts</a></p></li>
+<li><p><a class="reference internal" href="#verbose-mode" id="id6">Verbose mode</a></p></li>
+<li><p><a class="reference internal" href="#basic-layout-leaf-names-branch-length-and-support" id="id7">Basic layout (leaf names, branch length and support)</a></p></li>
+<li><p><a class="reference internal" href="#showing-node-s-properties-in-a-popup" id="id8">Showing node’s properties in a popup</a></p></li>
+<li><p><a class="reference internal" href="#control-panel" id="id9">Control panel</a></p>
+<ul>
+<li><p><a class="reference internal" href="#main" id="id10">1) Main</a></p></li>
+<li><p><a class="reference internal" href="#selections" id="id11">2) Selections</a></p>
+<ul>
+<li><p><a class="reference internal" href="#simple-search" id="id12">Simple search</a></p></li>
+<li><p><a class="reference internal" href="#regular-expression-search" id="id13">Regular expression search</a></p></li>
+<li><p><a class="reference internal" href="#expression-search" id="id14">Expression search</a></p></li>
+<li><p><a class="reference internal" href="#topological-search" id="id15">Topological search</a></p></li>
+<li><p><a class="reference internal" href="#examples" id="id16">Examples</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#advanced" id="id17">3) Advanced</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#context-menu" id="id18">Context menu</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#customizing-the-visualization" id="id19">Customizing the visualization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#layouts" id="id20">Layouts</a></p></li>
+<li><p><a class="reference internal" href="#changing-the-tree-style" id="id21">Changing the tree style</a></p>
+<ul>
+<li><p><a class="reference internal" href="#example-of-simple-change" id="id22">Example of simple change</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#changing-the-node-style" id="id23">Changing the node style</a></p>
+<ul>
+<li><p><a class="reference internal" href="#id1" id="id24">Example of simple change</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#faces-and-decorations" id="id25">Faces and decorations</a></p>
+<ul>
+<li><p><a class="reference internal" href="#positioning-faces-with-decorations" id="id26">Positioning faces with decorations</a></p></li>
+<li><p><a class="reference internal" href="#collapsed-nodes" id="id27">Collapsed nodes</a></p></li>
+<li><p><a class="reference internal" href="#face-properties" id="id28">Face properties</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#combining-styles-and-decorations" id="id29">Combining styles and decorations</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>We can represent and interact with a tree in a flexible way by using
+the <em>explorer</em> module.</p>
+<p>Let’s create a simple tree with 100 leaves and randomly populated:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="kn">import</span> <span class="n">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">populate</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dist_fn</span><span class="o">=</span><span class="n">random</span><span class="p">,</span> <span class="n">support_fn</span><span class="o">=</span><span class="n">random</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can start exploring it with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>At that moment the web browser will open, and we can use the graphical
+user interface (GUI) to interact with our tree using the default
+visualization.</p>
+<img alt="../_images/gui.png" src="../_images/gui.png" />
+<p>There are already many things that can be done to change the
+visualization by using the menus in the GUI and changing styles, doing
+searches, creating labels and more.</p>
+<p>But we can also control programatically how to do the visualization,
+and in a more flexible way. We do that by using <em>layouts</em>.</p>
+<p>With a layout we can for example set some style for the lines of the
+tree, the dots of the nodes, and many other tree-related styles. Or
+change the style of only some nodes that we are interested in. We may
+want to add textual or graphical information to certain nodes too.</p>
+<p>The concepts that ETE uses to describe the visualization are:</p>
+<ul class="simple">
+<li><p><strong>Styles</strong> represented as dictionaries. For example <code class="docutils literal notranslate"><span class="pre">{'shape':</span>
+<span class="pre">'circular',</span> <span class="pre">'hz-line':</span> <span class="pre">{'stroke-width':</span> <span class="pre">2}}</span></code>.</p></li>
+<li><p><strong>Faces</strong>, pictorial or textual <em>information pieces</em> represented by
+the class <a class="reference internal" href="../reference/reference_smartview.html#module-ete4.smartview.faces" title="ete4.smartview.faces"><code class="xref py py-class docutils literal notranslate"><span class="pre">Face</span></code></a>, with a variety of subclasses
+for different kinds of representations (<a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.faces.TextFace" title="ete4.smartview.faces.TextFace"><code class="xref py py-class docutils literal notranslate"><span class="pre">TextFace</span></code></a>, <a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.faces.ImageFace" title="ete4.smartview.faces.ImageFace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageFace</span></code></a>, …). Faces
+know how to return graphic elements showing the information
+corresponding to a node, or to a group nodes collapsed together.</p></li>
+<li><p><strong>Decorations</strong>, a way to describe where to place faces, by means of
+the class <a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.layout.Decoration" title="ete4.smartview.layout.Decoration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Decoration</span></code></a>. It mainly allows
+to specify the <code class="docutils literal notranslate"><span class="pre">position</span></code> where to draw the information relative
+to its node (on <em>top</em> of its branch, at its <em>right</em>, <em>aligned</em>,
+etc.), and in which column to put it (to stack it nicely with other
+faces from the same layout or a different one).</p></li>
+<li><p><strong>Layouts</strong>, full descriptions of how to represent a tree, using the
+class <a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.layout.Layout" title="ete4.smartview.layout.Layout"><code class="xref py py-class docutils literal notranslate"><span class="pre">Layout</span></code></a>. They contain a
+<code class="xref py py-func docutils literal notranslate"><span class="pre">draw_node()</span></code> function that produces the decorations and
+styles that we want for a given node, and a <code class="xref py py-func docutils literal notranslate"><span class="pre">draw_tree()</span></code>
+function that does the same for the full tree. They
+exploring/visualizing a tree, they compose: using several layouts
+will add extra graphic representations, and/or overwrite some styles
+from previous layouts.</p></li>
+</ul>
+</section>
+<section id="launching-the-explorer">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Launching the explorer</a><a class="headerlink" href="#launching-the-explorer" title="Link to this heading">¶</a></h2>
+<p>To start the visualization of a tree, we can use the <a class="reference internal" href="../reference/reference_tree.html#ete4.Tree.explore" title="ete4.Tree.explore"><code class="xref py py-func docutils literal notranslate"><span class="pre">explore</span></code></a> method as shown above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If we run it from the python console, in addition to opening a web
+browser session, the call returns immediately and we can continue
+working with the tree in the console.</p>
+<p>The explorer allows to visualize and also manipulate the tree. You can
+in parallel change the tree from the GUI and from the console, and the
+changes will be reflected everywhere.</p>
+<p>This is very useful, but sometimes we want a different behavior. Let’s
+see some examples of typical uses.</p>
+<section id="standalone-scripts">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Standalone scripts</a><a class="headerlink" href="#standalone-scripts" title="Link to this heading">¶</a></h3>
+<p>If we run a standalone script, after the call to <a class="reference internal" href="../reference/reference_tree.html#ete4.Tree.explore" title="ete4.Tree.explore"><code class="xref py py-func docutils literal notranslate"><span class="pre">explore</span></code></a> the program will continue and probably end,
+finishing the interactive session at the same time.</p>
+<p>We can set the argument <code class="docutils literal notranslate"><span class="pre">keep_server=True</span></code> to keep the server running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">keep_server</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The program will run until we kill the process (with Ctrl+C for
+example).</p>
+<p>A better way is to simply wait for some input before continuing, for
+example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Press enter to stop the server and finish.&#39;</span><span class="p">)</span>
+<span class="nb">input</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="verbose-mode">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Verbose mode</a><a class="headerlink" href="#verbose-mode" title="Link to this heading">¶</a></h3>
+<p>We can set <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> to see all the actions made by the ETE
+backend, which can be useful for debugging and for getting an insight
+on how the explorer works:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">Explorer now available at http://127.0.0.1:5000</span>
+<span class="go">127.0.0.1 - - [18/Dec/2024 10:41:39] &quot;GET / HTTP/1.1&quot; 303 0</span>
+<span class="go">127.0.0.1 - - [18/Dec/2024 10:41:39] &quot;GET /static/gui.html?tree=tree-1 HTTP/1.1&quot; 200 1476</span>
+<span class="go">127.0.0.1 - - [18/Dec/2024 10:41:39] &quot;GET /static/gui.css HTTP/1.1&quot; 200 5255</span>
+<span class="go">[...]</span>
+<span class="go">127.0.0.1 - - [18/Dec/2024 10:41:39] &quot;GET /trees HTTP/1.1&quot; 200 36</span>
+<span class="go">127.0.0.1 - - [18/Dec/2024 10:41:39] &quot;GET /static/icon.png HTTP/1.1&quot; 200 686</span>
+<span class="go">127.0.0.1 - - [18/Dec/2024 10:41:39] &quot;GET /trees/tree-1/layouts HTTP/1.1&quot; 200 27</span>
+<span class="go">[...]</span>
+<span class="go">127.0.0.1 - - [18/Dec/2024 10:41:39] &quot;GET /trees/tree-1/draw?shape=rectangular&amp;node_height_min=30&amp;content_height_min=4&amp;zx=375.9&amp;zy=178.79999999999998&amp;x=-0.33333333333333337&amp;y=-0.16666666666666669&amp;w=3.3333333333333335&amp;h=3.3333333333333335&amp;collapsed_shape=skeleton&amp;collapsed_ids=%5B%5D&amp;layouts=%5B%22basic%22%5D&amp;labels=%5B%5D HTTP/1.1&quot; 200 1331</span>
+</pre></div>
+</div>
+</section>
+<section id="basic-layout-leaf-names-branch-length-and-support">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Basic layout (leaf names, branch length and support)</a><a class="headerlink" href="#basic-layout-leaf-names-branch-length-and-support" title="Link to this heading">¶</a></h3>
+<p>When we call <code class="docutils literal notranslate"><span class="pre">t.explore()</span></code> without any arguments, a layout is
+automatically added to show the names of the leaf nodes, the branch
+lengths and their support (the <code class="docutils literal notranslate"><span class="pre">BASIC_LAYOUT</span></code>).</p>
+<p>We can remove it from the GUI by clicking on it in the menu <em>layouts</em>,
+or programatically by specifying an empty list of layouts:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[])</span>
+</pre></div>
+</div>
+<p>So what happens when we are not explicitely passing the <cite>layouts</cite>
+argument? The explorer interprets it as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">BASIC_LAYOUT</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">BASIC_LAYOUT</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="showing-node-s-properties-in-a-popup">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Showing node’s properties in a popup</a><a class="headerlink" href="#showing-node-s-properties-in-a-popup" title="Link to this heading">¶</a></h3>
+<p>When we hover with the mouse over a node, we can see its properties in
+a popup. By default, only the name, the length, and the support appear
+(if they are defined).</p>
+<p>By setting the arguments <code class="docutils literal notranslate"><span class="pre">show_popup_props</span></code> and <code class="docutils literal notranslate"><span class="pre">hide_popup_props</span></code> we
+can choose which properties to show. This way the backend only needs
+to send the relevant information when drawing the nodes, and we can
+visualize only what we want without being overwhelmed.</p>
+<p>For example, to show only the property <code class="docutils literal notranslate"><span class="pre">dist</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">show_popup_props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dist&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Or if we want to see all except some:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">show_popup_props</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hide_popup_props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dist&#39;</span><span class="p">,</span> <span class="s1">&#39;sequence&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="control-panel">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Control panel</a><a class="headerlink" href="#control-panel" title="Link to this heading">¶</a></h3>
+<p>When exploring the tree, a control panel will be shown in the left
+side of the tree panel.</p>
+<img alt="../_images/panel.png" src="../_images/panel.png" />
+<p>It consists of the three major tabs:</p>
+<ul class="simple">
+<li><p><strong>Main</strong>: More common settings including layouts, collapsing level, etc.</p></li>
+<li><p><strong>Selections</strong>: For searches, manual collapse and tagging of nodes.</p></li>
+<li><p><strong>Advanced</strong>: With less common settings and operations like sorting, changing styles, etc.</p></li>
+</ul>
+<section id="main">
+<h4><a class="toc-backref" href="#id10" role="doc-backlink">1) Main</a><a class="headerlink" href="#main" title="Link to this heading">¶</a></h4>
+<img alt="../_images/panel_main.png" src="../_images/panel_main.png" />
+<p>This tab contains the general settings of the tree visualization. It
+includes among other things:</p>
+<ul class="simple">
+<li><p><strong>tree</strong>: Selector with current tree (can select other loaded trees).</p></li>
+<li><p><strong>download</strong>: Different ways to download the tree (as newick or as an image).</p></li>
+<li><p><strong>upload</strong>: Allows to upload new trees from their newick representation.</p></li>
+<li><p><strong>shape</strong>: Tree representation as <code class="docutils literal notranslate"><span class="pre">rectangular</span></code> or <code class="docutils literal notranslate"><span class="pre">circular</span></code>.</p></li>
+<li><p><strong>node height min</strong>: Minimum height in pixels to expand a node (otherwise shown as collapsed).</p></li>
+<li><p><strong>content height min</strong>: Minimum height in pixels to show content (content with less height will not show).</p></li>
+<li><p><strong>layouts</strong>: Lists all available layouts and allows to switch them on and off.</p></li>
+<li><p><strong>extra labels</strong>: Allows to add labels, additional pieces of information to attach to nodes.</p></li>
+<li><p><strong>smart zoom</strong>: Zooms making the current node under the cursor grow towards the window.</p></li>
+</ul>
+</section>
+<section id="selections">
+<h4><a class="toc-backref" href="#id11" role="doc-backlink">2) Selections</a><a class="headerlink" href="#selections" title="Link to this heading">¶</a></h4>
+<img alt="../_images/panel_selections.png" src="../_images/panel_selections.png" />
+<p>This tab contains the searches and selected nodes.</p>
+<p>We can make a search with clicking <em>new search</em> button (also the “/”
+shortcut), then input the query in the search box. There are different
+ways to search for nodes.</p>
+<section id="simple-search">
+<h5><a class="toc-backref" href="#id12" role="doc-backlink">Simple search</a><a class="headerlink" href="#simple-search" title="Link to this heading">¶</a></h5>
+<p>We can put a text in the search box to find all the nodes whose name
+matches it. The search will be case-insensitive if the text is all in
+lower case, and case-sensitive otherwise.</p>
+</section>
+<section id="regular-expression-search">
+<h5><a class="toc-backref" href="#id13" role="doc-backlink">Regular expression search</a><a class="headerlink" href="#regular-expression-search" title="Link to this heading">¶</a></h5>
+<p>To search for names mathing a given regular expression, we can prefix
+the text with the command <code class="docutils literal notranslate"><span class="pre">/r</span></code> (the <em>regexp command</em>) and follow it
+with the regular expression.</p>
+</section>
+<section id="expression-search">
+<h5><a class="toc-backref" href="#id14" role="doc-backlink">Expression search</a><a class="headerlink" href="#expression-search" title="Link to this heading">¶</a></h5>
+<p>When prefixing our text with <code class="docutils literal notranslate"><span class="pre">/e</span></code> (the <em>eval command</em>), we can use a
+quite general python expression to search for nodes. This is the most
+powerful search method available (and the most complex to use).</p>
+<p>The expression will be evaluated for every node, and will select those
+that satisfy it. In the expression we can use (among others) the
+following variables, with their straightforward interpretation:
+<code class="docutils literal notranslate"><span class="pre">node</span></code>, <code class="docutils literal notranslate"><span class="pre">parent</span></code>, <code class="docutils literal notranslate"><span class="pre">is_leaf</span></code>, <code class="docutils literal notranslate"><span class="pre">length</span></code> / <code class="docutils literal notranslate"><span class="pre">dist</span></code> / <code class="docutils literal notranslate"><span class="pre">d</span></code>, <code class="docutils literal notranslate"><span class="pre">properties</span></code> /
+<code class="docutils literal notranslate"><span class="pre">p</span></code>, <code class="docutils literal notranslate"><span class="pre">children</span></code> / <code class="docutils literal notranslate"><span class="pre">ch</span></code>, <code class="docutils literal notranslate"><span class="pre">size</span></code>, <code class="docutils literal notranslate"><span class="pre">dx</span></code>, <code class="docutils literal notranslate"><span class="pre">dy</span></code>, <code class="docutils literal notranslate"><span class="pre">regex</span></code>.</p>
+</section>
+<section id="topological-search">
+<h5><a class="toc-backref" href="#id15" role="doc-backlink">Topological search</a><a class="headerlink" href="#topological-search" title="Link to this heading">¶</a></h5>
+<p>Similar to the expression search, if we prefix the text with <code class="docutils literal notranslate"><span class="pre">/t</span></code> (the
+<em>topological command</em>), we can write a newick tree with quoted names
+in each node containing an eval command. This will select the nodes
+that satisfy the full subtree of expressions that you passed.</p>
+</section>
+<section id="examples">
+<h5><a class="toc-backref" href="#id16" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading">¶</a></h5>
+<p>Some examples of searches and possible matches:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Query</p></th>
+<th class="head"><p>Example match</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">citrobacter</span></code></p></td>
+<td><p>will match nodes named “Citrobacter werkmanii” and
+“Citrobacter youngae”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UBA</span></code></p></td>
+<td><p>will match “spx UBA2009” but not “Rokubacteriales”</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">/r</span> <span class="pre">sp\d\d</span></code></p></td>
+<td><p>will match any name that contains “sp” followed by
+(at least) two digits, like “Escherichia sp002965065”
+and “Citrobacter sp005281345”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">/e</span> <span class="pre">len(ch)</span> <span class="pre">&gt;</span> <span class="pre">2</span></code></p></td>
+<td><p>will match nodes with more than 2 children</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">/e</span> <span class="pre">is_leaf</span> <span class="pre">and</span></code>
+<code class="docutils literal notranslate"><span class="pre">p['species']</span> <span class="pre">==</span> <span class="pre">'Homo'</span></code></p></td>
+<td><p>will match leaf nodes with property “species”
+equal to “Homo”</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">/t</span> <span class="pre">(&quot;is_leaf&quot;,&quot;d</span> <span class="pre">&gt;</span> <span class="pre">1&quot;)&quot;name=='AB'&quot;</span></code></p></td>
+<td><p>will match nodes named “AB” that have
+two children, one that is a leaf and
+another that has a length &gt; 1</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="advanced">
+<h4><a class="toc-backref" href="#id17" role="doc-backlink">3) Advanced</a><a class="headerlink" href="#advanced" title="Link to this heading">¶</a></h4>
+<img alt="../_images/panel_advanced.png" src="../_images/panel_advanced.png" />
+<p>This tab contains functions to select subtrees, sort, change styles
+and more.</p>
+</section>
+</section>
+<section id="context-menu">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Context menu</a><a class="headerlink" href="#context-menu" title="Link to this heading">¶</a></h3>
+<p>We can right-click on a node to open a context menu with different
+options.</p>
+<img alt="../_images/context_menu.png" src="../_images/context_menu.png" />
+<p>There are many node-specific actions such as renaming, collapsing,
+moving and more. And there are a few tree actions like reseting the
+view, sorting the tree, or converting it to dendogram or ultrametric.</p>
+</section>
+</section>
+<section id="customizing-the-visualization">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Customizing the visualization</a><a class="headerlink" href="#customizing-the-visualization" title="Link to this heading">¶</a></h2>
+<p>The main elements used to customize the visualization are <em>styles</em>,
+<em>faces</em>, <em>decorations</em>, and <em>layouts</em>.</p>
+<section id="layouts">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Layouts</a><a class="headerlink" href="#layouts" title="Link to this heading">¶</a></h3>
+<p>Layouts contain the <code class="docutils literal notranslate"><span class="pre">draw_node()</span></code> and <code class="docutils literal notranslate"><span class="pre">draw_tree()</span></code> functions, which
+create the styles and faces that we use to represent the tree. They
+are objects of the class <a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.layout.Layout" title="ete4.smartview.layout.Layout"><code class="xref py py-class docutils literal notranslate"><span class="pre">Layout</span></code></a>. They contain:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Identifies the layout, so it can be activated/deactivated in the GUI.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">draw_tree()</span></code>: A function that sets style and decorations for the full tree.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">draw_node()</span></code>: A function that sets style and decorations for the given nodes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cache_size</span></code>: The number of arguments cached when calling <cite>draw_node</cite> (defaults to all).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">active</span></code>: Whether the layout will be immediately active when exploring (defaults to True).</p></li>
+</ul>
+<p>Let’s look at how to use them. The simplest case is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">populate</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;I am a layout doing nothing&#39;</span><span class="p">)</span>
+
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>We can see a representation of the tree, and in the control panel, a
+layout that appears with the name “I am a layout doing nothing”.</p>
+<img alt="../_images/layout_example.png" src="../_images/layout_example.png" />
+<p>It name is accurate, as we can see if we activate or desactivate it by
+clicking its checkbox: nothing happens, no extra information is shown
+in the tree anyway.</p>
+</section>
+<section id="changing-the-tree-style">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Changing the tree style</a><a class="headerlink" href="#changing-the-tree-style" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">draw_tree</span></code> field of a layout specifies the general aspects of the
+tree style. For example, we can modify the scale used to render tree
+branches or choose between circular or rectangular tree drawing, etc.</p>
+<p>In general, it is a function of the tree, and returns a list of
+decorations and styles to use.</p>
+<p>We often just need to change its style, and in a way that does not
+depend on the tree. For that common case, <code class="docutils literal notranslate"><span class="pre">draw_tree</span></code> can also be a
+dictionary with the style.</p>
+<p>A dictionary with the tree style can look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_tree_style</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="s1">&#39;circular&#39;</span><span class="p">,</span>  <span class="c1"># or &#39;rectangular&#39;</span>
+   <span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># in circular mode, minimum radius value</span>
+   <span class="s1">&#39;angle-start&#39;</span><span class="p">:</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># in circular mode, where to start</span>
+   <span class="s1">&#39;angle-end&#39;</span><span class="p">:</span> <span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># alternatively we can give &#39;angle-span&#39;</span>
+   <span class="s1">&#39;node-height-min&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>  <span class="c1"># when to start collapsing nodes</span>
+   <span class="s1">&#39;content-height-min&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># when to start showing faces</span>
+   <span class="s1">&#39;collapsed&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="s1">&#39;outline&#39;</span><span class="p">,</span> <span class="s1">&#39;fill-opacity&#39;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">},</span>
+   <span class="s1">&#39;show-popup-props&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># show all defined properties</span>
+   <span class="s1">&#39;hide-popup-props&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;support&#39;</span><span class="p">],</span>  <span class="c1"># except support</span>
+   <span class="s1">&#39;is-leaf-fn&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">node</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">level</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">,</span>  <span class="c1"># nodes treated as leaves</span>
+   <span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;opacity&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;stroke&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">},</span>
+   <span class="s1">&#39;dot&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="s1">&#39;hexagon&#39;</span><span class="p">,</span> <span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">},</span>
+   <span class="s1">&#39;hz-line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stroke-width&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>  <span class="c1"># horizontal line to parent</span>
+   <span class="s1">&#39;vt-line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stroke&#39;</span><span class="p">:</span> <span class="s1">&#39;#ffff00&#39;</span><span class="p">},</span>  <span class="c1"># vertical line to children</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The last four (<strong>box</strong>, <strong>dot</strong>, <strong>hz-line</strong>, <strong>vt-line</strong>) define the
+general look for all the nodes, but they can be overriden too in an
+individual basis with the function <code class="docutils literal notranslate"><span class="pre">draw_node</span></code> as explained below.</p>
+<p>The <a class="reference internal" href="../reference/reference_smartview.html#module-ete4.smartview.layout" title="ete4.smartview.layout"><code class="xref py py-class docutils literal notranslate"><span class="pre">Layout</span></code></a> documentation has a complete list of options.</p>
+<p>Let’s see some examples of how to modify the tree style.</p>
+<section id="example-of-simple-change">
+<h4><a class="toc-backref" href="#id22" role="doc-backlink">Example of simple change</a><a class="headerlink" href="#example-of-simple-change" title="Link to this heading">¶</a></h4>
+<p>A simple way to control the tree style is to pass a dictionary with
+the options we want to <code class="docutils literal notranslate"><span class="pre">draw_tree</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">populate</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;my layout&#39;</span><span class="p">,</span>
+                <span class="n">draw_tree</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;node-height-min&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">})</span>
+
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>In this case, we are requesting to collapse any node with a height
+less than 100 pixels.</p>
+</section>
+</section>
+<section id="changing-the-node-style">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Changing the node style</a><a class="headerlink" href="#changing-the-node-style" title="Link to this heading">¶</a></h3>
+<p>In the same way that we can control the general tree style with a
+dictionary of options returned by <code class="docutils literal notranslate"><span class="pre">draw_tree</span></code>, we can also control the
+style of a given node with a dictionary of options returned by
+<code class="docutils literal notranslate"><span class="pre">draw_node</span></code>.</p>
+<p>It is possible to change the color, thickness of lines and many more
+style attributes of the following node elements:</p>
+<ul class="simple">
+<li><p><strong>box</strong>: The box (area) surrounding the node.</p></li>
+<li><p><strong>dot</strong>: The dot that represents the node itself.</p></li>
+<li><p><strong>hz-line</strong>: The horizontal line that connects it to its parent.</p></li>
+<li><p><strong>vt-line</strong>: The vertical line connecting it to its children.</p></li>
+</ul>
+<p>For all of them there are many options to change their style. The main
+options are <strong>fill</strong>, <strong>stroke</strong>, <strong>stroke-width</strong>, <strong>opacity</strong>, but
+there are also many more: <strong>fill-opacity</strong>, <strong>stroke-opacity</strong>,
+<strong>stroke-linecap</strong>, <strong>stroke-linejoin</strong>, <strong>stroke-miterlimit</strong>,
+<strong>stroke-dashoffset</strong>, <strong>stroke-dasharray</strong>, <strong>paint-order</strong>,
+<strong>fill-rule</strong>, etc. They are all based on <a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes">SVG attributes</a>.</p>
+<p>In addition to those, some elements have extra attributes:</p>
+<ul class="simple">
+<li><p><strong>dot</strong></p>
+<ul>
+<li><p><strong>shape</strong>: Figure (circle, square, …) or its number of sides, representing the node.</p></li>
+<li><p><strong>radius</strong>: The approximate radius in pixels of the dot.</p></li>
+</ul>
+</li>
+<li><p><strong>collapsed</strong> (only used from the tree style)</p>
+<ul>
+<li><p><strong>shape</strong>: Representation of collapsed nodes as “skeleton” or “outline”.</p></li>
+</ul>
+</li>
+</ul>
+<section id="id1">
+<h4><a class="toc-backref" href="#id24" role="doc-backlink">Example of simple change</a><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
+<p>A simple tree where we change the style for the leaves:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((a,b),c);&#39;</span><span class="p">)</span>
+
+<span class="c1"># Nodes will be represented as small red triangles of 5 pixels radius.</span>
+<span class="n">style_dot</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="s1">&#39;triangle&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+             <span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}</span>
+
+<span class="c1"># Branch lines (horizontal lines) will be brown and dashed, and 10 pixels thick.</span>
+<span class="n">style_hz_line</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;stroke-dasharray&#39;</span><span class="p">:</span> <span class="s1">&#39;5,5&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;stroke-width&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                 <span class="s1">&#39;stroke&#39;</span><span class="p">:</span> <span class="s1">&#39;#964B00&#39;</span><span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;dot&#39;</span><span class="p">:</span> <span class="n">style_dot</span><span class="p">,</span>
+                <span class="s1">&#39;hz-line&#39;</span><span class="p">:</span> <span class="n">style_hz_line</span><span class="p">}</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/my_layout.png" src="../_images/my_layout.png" />
+<p>We can use different styles for different nodes. Let’s see a couple of
+examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((a,b),c);&#39;</span><span class="p">)</span>
+
+<span class="c1"># Leaves will have small red squares of radius 10 pixels.</span>
+<span class="n">leaf_style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dot&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="s1">&#39;square&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                      <span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}}</span>
+
+<span class="c1"># The root node will be blue, with a dot of 15 pixel radius, and a</span>
+<span class="c1"># custom vertical line.</span>
+<span class="n">root_style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">},</span>
+              <span class="s1">&#39;dot&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">},</span>
+              <span class="s1">&#39;vt-line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stroke&#39;</span><span class="p">:</span> <span class="s1">&#39;#964B00&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;stroke-width&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                          <span class="s1">&#39;stroke-dasharray&#39;</span><span class="p">:</span> <span class="s1">&#39;5,5&#39;</span><span class="p">}}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">leaf_style</span>
+    <span class="k">elif</span> <span class="n">node</span><span class="o">.</span><span class="n">is_root</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">root_style</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/draw_node.png" src="../_images/draw_node.png" />
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">BASIC_LAYOUT</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((((a,b),c),d),e);&#39;</span><span class="p">)</span>
+
+<span class="n">vowels</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">vowels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;dot&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+                    <span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}}</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">BASIC_LAYOUT</span><span class="p">,</span> <span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/vowels.png" src="../_images/vowels.png" />
+</section>
+</section>
+<section id="faces-and-decorations">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Faces and decorations</a><a class="headerlink" href="#faces-and-decorations" title="Link to this heading">¶</a></h3>
+<p>Faces are small pieces of graphical information that can be shown in
+nodes. For instance, text labels or external images can be linked to
+nodes and they will be plotted within the tree image.</p>
+<p>Several types of node faces are provided by the
+<a class="reference internal" href="../reference/reference_smartview.html#module-ete4.smartview.faces" title="ete4.smartview.faces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ete4.smartview.faces</span></code></a> submodule, ranging from simple text
+(<a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.faces.TextFace" title="ete4.smartview.faces.TextFace"><code class="xref py py-class docutils literal notranslate"><span class="pre">TextFace</span></code></a>) and geometric shapes
+(<a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.faces.CircleFace" title="ete4.smartview.faces.CircleFace"><code class="xref py py-class docutils literal notranslate"><span class="pre">CircleFace</span></code></a>) or (<a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.faces.RectFace" title="ete4.smartview.faces.RectFace"><code class="xref py py-class docutils literal notranslate"><span class="pre">RectFace</span></code></a>), to molecular sequence representations
+(<a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.faces.SeqFace" title="ete4.smartview.faces.SeqFace"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeqFace</span></code></a>).</p>
+<p>A complete list of available faces can be found at the
+<a class="reference internal" href="../reference/reference_smartview.html#module-ete4.smartview.faces" title="ete4.smartview.faces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">faces</span> <span class="pre">module</span> <span class="pre">page</span></code></a>.</p>
+<section id="positioning-faces-with-decorations">
+<h4><a class="toc-backref" href="#id26" role="doc-backlink">Positioning faces with decorations</a><a class="headerlink" href="#positioning-faces-with-decorations" title="Link to this heading">¶</a></h4>
+<p>Faces can be added to different areas around the node, namely
+<strong>right</strong>, <strong>left</strong>, <strong>top</strong>, <strong>bottom</strong> or <strong>aligned</strong>. Each area
+represents a table in which faces can be placed with a
+<a class="reference internal" href="../reference/reference_smartview.html#ete4.smartview.layout.Decoration" title="ete4.smartview.layout.Decoration"><code class="xref py py-func docutils literal notranslate"><span class="pre">Decoration</span></code></a>.</p>
+<p>For instance, if you want two text labels drawn below the branch line
+of a given node, a pair of <code class="xref py py-class docutils literal notranslate"><span class="pre">TextFace</span></code> faces can
+be created and put into decorations for the columns 0 and 1 of the
+<strong>bottom</strong> area, which are returned by the function <code class="docutils literal notranslate"><span class="pre">draw_node</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">Decoration</span><span class="p">,</span> <span class="n">TextFace</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((a:1,b:1):1,c:1):1;&#39;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_root</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;hello&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}),</span>
+                           <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">),</span>
+                <span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;world&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">}),</span>
+                           <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)]</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/face_bottom.png" src="../_images/face_bottom.png" />
+<p>If we set the column of “world” to 0 too:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;hello&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}),</span>
+                           <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">),</span>
+                <span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;world&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">}),</span>
+                           <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)]</span>
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/face_bottom2.png" src="../_images/face_bottom2.png" />
+<p>So if we add more than one face to the same area and column, they will
+be piled up.</p>
+<p>If the position is <strong>aligned</strong>, the face will be drawn in an aligned
+column. Let’s see an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">Decoration</span><span class="p">,</span> <span class="n">TextFace</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((a,b),c);&#39;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;hello&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}),</span>
+                           <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;aligned&#39;</span><span class="p">),</span>
+                <span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;world&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">}),</span>
+                           <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;aligned&#39;</span><span class="p">)]</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/face_aligned.png" src="../_images/face_aligned.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Once a face object is created, it can be used in one or more nodes.
+For instance, the same text label could be “recycled” and added to
+several nodes.</p>
+</div>
+</section>
+<section id="collapsed-nodes">
+<h4><a class="toc-backref" href="#id27" role="doc-backlink">Collapsed nodes</a><a class="headerlink" href="#collapsed-nodes" title="Link to this heading">¶</a></h4>
+<p>When viewing a large tree, ETE will collapse all the branches that are
+too small to be seen. When a branch is collapsed, we see a skeleton of
+its contents by default (but the shape can be changed to a triangular
+outline if we set it in the tree style, <code class="docutils literal notranslate"><span class="pre">{'collapsed':</span> <span class="pre">{'shape':</span>
+<span class="pre">'outline'}}</span></code>).</p>
+<p>When drawing collapsed nodes, we see by default the faces that
+correspond to all the sibling nodes that are collapsed together. But
+we can fine-tune this behavior by passing a second argument to the
+<code class="docutils literal notranslate"><span class="pre">draw_node</span></code> function. This argument will contain a list of all the
+collapsed (sibling) nodes at the time of the drawing, and it will be
+empty if the node is not collapsed. The function will look like
+<code class="docutils literal notranslate"><span class="pre">draw_node(node,</span> <span class="pre">collapsed)</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">Decoration</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((a:1,b:1)n1:1,c):1;&#39;</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">collapsed</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;n1&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">collapsed</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Decoration</span><span class="p">(</span><span class="s1">&#39;n1 is collapsed&#39;</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Decoration</span><span class="p">(</span><span class="s1">&#39;n1 is NOT collapsed&#39;</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Depending on the zoom level, we now will see:</p>
+<img alt="../_images/not_collapsed.png" src="../_images/not_collapsed.png" />
+<img alt="../_images/collapsed.png" src="../_images/collapsed.png" />
+<p>By the way, did you notice that we did not create a <code class="docutils literal notranslate"><span class="pre">TextFace</span></code> in
+this case? If we pass a text to a <code class="docutils literal notranslate"><span class="pre">Decoration</span></code> instead of a face, it
+will assume that we want a simple text face with that content.</p>
+</section>
+<section id="face-properties">
+<h4><a class="toc-backref" href="#id28" role="doc-backlink">Face properties</a><a class="headerlink" href="#face-properties" title="Link to this heading">¶</a></h4>
+<p>Each face has its own properties that control the details of its
+drawing. We can find a complete list for each face in the
+<a class="reference internal" href="../reference/reference_smartview.html#module-ete4.smartview.faces" title="ete4.smartview.faces"><code class="xref py py-class docutils literal notranslate"><span class="pre">faces</span> <span class="pre">module</span> <span class="pre">documentation</span></code></a>.</p>
+<p>Let’s look at a simple example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">TextFace</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((a:1,b:1):1,c:1):1;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create a TextFace initialized with certain properties.</span>
+<span class="n">face_top</span> <span class="o">=</span> <span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;branch top!&#39;</span><span class="p">,</span>
+                    <span class="n">fs_min</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">fs_max</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span>
+                    <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="s1">&#39;font-family&#39;</span><span class="p">:</span> <span class="s1">&#39;courier&#39;</span><span class="p">})</span>
+
+<span class="c1"># Same thing, but adding them after initializing it.</span>
+<span class="n">face_bottom</span> <span class="o">=</span> <span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;branch bottom!&#39;</span><span class="p">)</span>
+<span class="n">face_bottom</span><span class="o">.</span><span class="n">fs_min</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="n">face_bottom</span><span class="o">.</span><span class="n">fs_max</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="n">face_bottom</span><span class="o">.</span><span class="n">rotation</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">face_bottom</span><span class="o">.</span><span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;font-family&#39;</span><span class="p">:</span> <span class="s1">&#39;sans-serif&#39;</span><span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">Decoration</span><span class="p">(</span><span class="n">face_top</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">),</span>
+            <span class="n">Decoration</span><span class="p">(</span><span class="n">face_bottom</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)]</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/face_properties.png" src="../_images/face_properties.png" />
+</section>
+</section>
+</section>
+<section id="combining-styles-and-decorations">
+<h2><a class="toc-backref" href="#id29" role="doc-backlink">Combining styles and decorations</a><a class="headerlink" href="#combining-styles-and-decorations" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">draw_node</span></code> function can return a list with as many styles and
+decorations as we want.</p>
+<p>If it returns just one element (a decoration or a dictionary
+representing a style), it is intepreted as a list of only one element
+(itself).</p>
+<p>Instead of returning a list, we can also <a class="reference external" href="https://docs.python.org/3/reference/expressions.html#yieldexpr">yield</a>
+elements, that is, <code class="docutils literal notranslate"><span class="pre">draw_node</span></code> would become a <a class="reference external" href="https://peps.python.org/pep-0255/">python generator</a>. This syntax is the cleanest and
+this way is the most efficient of all, so we will use it in the
+following examples.</p>
+<p>Let’s see an example combining styles and faces, for both the tree
+(with <code class="docutils literal notranslate"><span class="pre">draw_tree</span></code>) and the nodes (with <code class="docutils literal notranslate"><span class="pre">draw_node</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">TextFace</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((((a,b),c),d),e);&#39;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_tree</span><span class="p">(</span><span class="n">tree</span><span class="p">):</span>
+    <span class="k">yield</span> <span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;Vowel title&#39;</span><span class="p">,</span> <span class="n">fs_min</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">fs_max</span><span class="o">=</span><span class="mi">12</span><span class="p">),</span>
+                     <span class="n">position</span><span class="o">=</span><span class="s1">&#39;header&#39;</span><span class="p">)</span>
+    <span class="c1">#yield Decoration(LegendFace(&#39;My legend&#39;,</span>
+    <span class="c1">#                            variable=&#39;discrete&#39;,</span>
+    <span class="c1">#                            colormap={&#39;vowel&#39;: &#39;red&#39;, &#39;conostant&#39;: &#39;blue&#39;}))</span>
+
+<span class="n">vowels</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">vowels</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">{</span><span class="s1">&#39;dot&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+               <span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}}</span>
+        <span class="k">yield</span> <span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;vowel!&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;red&#39;</span><span class="p">}),</span>
+                         <span class="n">position</span><span class="o">=</span><span class="s1">&#39;aligned&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">{</span><span class="s1">&#39;dot&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;radius&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+               <span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">}}</span>
+        <span class="k">yield</span> <span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="s1">&#39;not vowel!&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;blue&#39;</span><span class="p">}),</span>
+                         <span class="n">position</span><span class="o">=</span><span class="s1">&#39;aligned&#39;</span><span class="p">)</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_tree</span><span class="o">=</span><span class="n">draw_tree</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/combined.png" src="../_images/combined.png" />
+<p>Let’s see another example, where we change the background of certain
+nodes that are common ancestors to other nodes we are interested in:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ete4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ete4.smartview</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">Decoration</span><span class="p">,</span> <span class="n">TextFace</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;((((a1,a2),a3), ((b1,b2),(b3,b4))), ((c1,c2),c3));&#39;</span><span class="p">)</span>
+
+<span class="c1"># Background colors.</span>
+<span class="n">style1</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;LightSteelBlue&#39;</span><span class="p">}}</span>
+<span class="n">style2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;Moccasin&#39;</span><span class="p">}}</span>
+<span class="n">style3</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;DarkSeaGreen&#39;</span><span class="p">}}</span>
+<span class="n">style4</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;fill&#39;</span><span class="p">:</span> <span class="s1">&#39;Khaki&#39;</span><span class="p">}}</span>
+
+<span class="c1"># Find common ancestors.</span>
+<span class="n">n1</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">common_ancestor</span><span class="p">([</span><span class="s1">&#39;a1&#39;</span><span class="p">,</span> <span class="s1">&#39;a2&#39;</span><span class="p">,</span> <span class="s1">&#39;a3&#39;</span><span class="p">])</span>
+<span class="n">n2</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">common_ancestor</span><span class="p">([</span><span class="s1">&#39;b1&#39;</span><span class="p">,</span> <span class="s1">&#39;b2&#39;</span><span class="p">,</span> <span class="s1">&#39;b3&#39;</span><span class="p">,</span> <span class="s1">&#39;b4&#39;</span><span class="p">])</span>
+<span class="n">n3</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">common_ancestor</span><span class="p">([</span><span class="s1">&#39;c1&#39;</span><span class="p">,</span> <span class="s1">&#39;c2&#39;</span><span class="p">,</span> <span class="s1">&#39;c3&#39;</span><span class="p">])</span>
+<span class="n">n4</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">common_ancestor</span><span class="p">([</span><span class="s1">&#39;b3&#39;</span><span class="p">,</span> <span class="s1">&#39;b4&#39;</span><span class="p">])</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="c1"># Add node name with big text.</span>
+    <span class="k">yield</span> <span class="n">Decoration</span><span class="p">(</span><span class="n">TextFace</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">fs_min</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">fs_max</span><span class="o">=</span><span class="mi">25</span><span class="p">),</span> <span class="n">position</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Set the node style.</span>
+    <span class="k">if</span> <span class="n">node</span> <span class="o">==</span> <span class="n">n1</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">style1</span>
+    <span class="k">elif</span> <span class="n">node</span> <span class="o">==</span> <span class="n">n2</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">style2</span>
+    <span class="k">elif</span> <span class="n">node</span> <span class="o">==</span> <span class="n">n3</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">style3</span>
+    <span class="k">elif</span> <span class="n">node</span> <span class="o">==</span> <span class="n">n4</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">style4</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="p">(</span><span class="s1">&#39;My layout&#39;</span><span class="p">,</span> <span class="n">draw_node</span><span class="o">=</span><span class="n">draw_node</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">layouts</span><span class="o">=</span><span class="p">[</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="../_images/node_backgrounds.png" src="../_images/node_backgrounds.png" />
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">ETE Toolkit</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tutorial_trees.html">The Tree structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_phylogeny.html">Phylogenetic trees</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tree drawing and exploration (web)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treeview.html">Tree drawing (Qt)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_taxonomy.html">Taxonomy databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_treematcher.html">Tree matcher</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../internals/index.html">Internals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faqs.html">Frequently Asked Questions</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Tutorial</a><ul>
+      <li>Previous: <a href="tutorial_phylogeny.html" title="previous chapter">Phylogenetic trees</a></li>
+      <li>Next: <a href="tutorial_treeview.html" title="next chapter">Tree drawing (Qt)</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2008 - 2024, The ETE Toolkit Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/tutorial/tutorial_smartview.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
