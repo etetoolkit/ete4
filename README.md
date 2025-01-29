@@ -1,3 +1,39 @@
+# ☣️ Warning - This is just a mirror
+
+This repository is a clone of [ete](https://github.com/etetoolkit/ete)
+with only the branches `ete4`, `ete3`, `3.0`, and `2.3`, which has
+been cleaned up from old big blobs to reduce its size (from 140 MB in
+a fresh install to just 30 MB).
+
+For the moment it is just a proof of concept. It may or **may not be
+updated** with the latest content in the main repository.
+
+We created it by cloning the original repository, removing branches
+with `git branch -D ...`, and then:
+
+```sh
+git filter-repo --strip-blobs-bigger-than 1M
+```
+
+and edit `.git/config` to re-add:
+
+```
+[remote "origin"]
+	url = git@github.com:etetoolkit/ete.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+```
+
+and finally:
+
+```sh
+git push --force --mirror origin
+```
+
+Then, the updates are done from the original repository with a
+combination of `git format-patch` and `git apply`.
+
+---
+
 [![](https://travis-ci.org/etetoolkit/ete.svg?branch=ete4)](https://travis-ci.org/etetoolkit/ete)
 [![Join the chat at https://gitter.im/jhcepas/ete](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jhcepas/ete?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![](https://coveralls.io/repos/jhcepas/ete/badge.png)
