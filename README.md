@@ -69,9 +69,6 @@ Its main features include:
 The official website of ETE is http://etetoolkit.org. You can find
 downloading instructions and further documentation there.
 
-News and announcements are usually posted on twitter:
-http://twitter.com/etetoolkit
-
 If you use ETE, please cite:
 
     Jaime Huerta-Cepas, François Serra and Peer Bork. "ETE 3: Reconstruction,
